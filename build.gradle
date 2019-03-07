@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'couch'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    
+    flatDir{
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile fileTree(dir: 'libs', include: '*.jar')
+    implementation 'org.hid4java:hid4java:0.5.0'
+}
