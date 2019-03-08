@@ -6,7 +6,9 @@ public class Joycon {
     private HidDevice handle;
     private int side;
     private JoyconCodes currentButtonDown = null;
+    private int[] currentStickPos = new int[]{ 8, 6 };
     private JoyconInputHandler inputHandler = null;
+    private JoyconUnsafeInputHandler unsafeInputHandler = null;
     private boolean rumbleOn = false;
 
     public Joycon(HidDevice handle, int side){
@@ -16,11 +18,16 @@ public class Joycon {
             for(JoyconCodes code : JoyconCodes.values()){
                 if(reportData[code.getReportIndex()] == code.getCode() && code.getSide() == this.side){
                     this.currentButtonDown = code;
-                    inputHandler.handleInput(this.currentButtonDown);
+                    if(inputHandler != null) inputHandler.handleInput(this, this.currentButtonDown);
                     break;
                 }
             }
+            if(unsafeInputHandler != null) unsafeInputHandler.handleUnsafeInput(this, reportData);
         });
+    }
+
+    public void detach(){
+        this.handle.close();
     }
 
     /**
@@ -32,21 +39,22 @@ public class Joycon {
             int buttons2 = reportData[2];
             System.out.println("Buttons1: " + buttons1);
             System.out.println("Buttons2: " + buttons2);
+            System.out.println("Stick pos: " + reportData[3]);
             System.out.println();
-            rumbleJoycon();
+            rumbleJoycon(160, 320, 0);
         });
     }
 
-    public void rumbleJoycon(){
+    public void rumbleJoycon(float lowFreq, float highFreq, float amplitude){
         if(!rumbleOn) enableRumble();
         byte[] buf = new byte[49];
         buf[0] = 0x10;
-        byte[] rumbleData = collectRumbleData();
+        byte[] rumbleData = new Rumble(lowFreq, highFreq, amplitude).getRumbleData();
         System.arraycopy(rumbleData, 0, buf, 1, rumbleData.length);
         this.handle.setOutputReport((byte)0x10, buf, 50);
     }
 
-    private void enableRumble(){
+    public void enableRumble(){
         byte[] buf = new byte[49];
         buf[0] = 0x1;
         buf[10] = 0x48;
@@ -55,27 +63,11 @@ public class Joycon {
         this.rumbleOn = true;
     }
 
-    private static byte[] collectRumbleData(){
-        byte[] buf = new byte[8];
-        buf[0] = 0x0;
-        buf[1] = 0x1;
-        buf[2] = 0x40;
-        buf[3] = 0x40;
-        for(int i = 0; i < 4; ++i){
-            buf[4 + i] = buf[i];
-        }
-        return buf;
+    public void setJoyconUnsafeInputHandler(JoyconUnsafeInputHandler unsafeInputHandler){
+        this.unsafeInputHandler = unsafeInputHandler;
     }
 
     public void setJoyconInputHandler(JoyconInputHandler inputHandler){
         this.inputHandler = inputHandler;
-    }
-
-    public boolean isButtonDown(JoyconCodes code, int side){
-        return this.currentButtonDown != null && this.currentButtonDown.getCode() == code.getCode() && this.currentButtonDown.getSide() == side;
-    }
-
-    public JoyconCodes getButtonDown(){
-        return this.currentButtonDown;
     }
 }

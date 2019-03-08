@@ -1,24 +1,23 @@
 package couch.joycontest;
 
-import purejavahidapi.*;
-
 public class JoyconTest {
-    private static byte[] default_buf = new byte[]{ 0x0, 0x1, 0x40, 0x40, 0x0, 0x1, 0x40, 0x40 };
-    private static HidDevice joycon = null;
-
     public static void main(String[] args){
         JoyconManager.INSTANCE.pairJoycons();
-        Joycon jc = JoyconManager.INSTANCE.getPairedJoycons().keySet().iterator().next();
-        jc.setJoyconInputHandler(code -> {
-            System.out.println("Button name: " + code.getName());
-            System.out.println("Button Code: " + code.getCode());
-            System.out.println("Button Report Index: " + code.getReportIndex());
-            System.out.println("Button Side: " + (code.getSide() == 0 ? "left" : "right"));
+//        JoyconManager.INSTANCE.getPairedJoycons().forEach(j -> j.setJoyconUnsafeInputHandler(new JoyconAnalogStickInputHandler()));
+    }
 
-            if(code.getName().equals("R") || code.getName().equals("L")){
-                jc.rumbleJoycon();
+    private static class JoyconInputHandlerImpl implements JoyconInputHandler{
+
+        @Override
+        public void handleInput(Joycon jc, JoyconCodes button) {
+            System.out.println("Button name: " + button.getName());
+            System.out.println("Button Code: " + button.getCode());
+            System.out.println("Button Report Index: " + button.getReportIndex());
+            System.out.println("Button Side: " + (button.getSide() == 0 ? "left" : "right"));
+
+            if(button.getName().equals("R") || button.getName().equals("L")){
+                jc.rumbleJoycon(160, 320, 0.6f);
             }
-        });
-
+        }
     }
 }

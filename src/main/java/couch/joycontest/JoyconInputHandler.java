@@ -1,5 +1,5 @@
 package couch.joycontest;
 
 public interface JoyconInputHandler {
-    void handleInput(JoyconCodes button);
+    void handleInput(Joycon source, JoyconCodes button);
 }

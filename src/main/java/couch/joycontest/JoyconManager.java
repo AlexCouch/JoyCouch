@@ -1,7 +1,11 @@
 package couch.joycontest;
 
-import java.util.*;
-import purejavahidapi.*;
+import purejavahidapi.HidDevice;
+import purejavahidapi.HidDeviceInfo;
+import purejavahidapi.PureJavaHidApi;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple Joycon Manager. This simply just manages all the joy-cons connected. This is where you would do general
@@ -11,20 +15,20 @@ import purejavahidapi.*;
 public class JoyconManager {
     public static final JoyconManager INSTANCE = new JoyconManager();
 
-    private Map<Joycon, HidDevice> pairedJoycons = new HashMap<>();
+    private List<Joycon> pairedJoycons = new ArrayList<>();
 
     private JoyconManager(){}
 
-    public Map<Joycon, HidDevice> getPairedJoycons(){ return pairedJoycons; }
+    public List<Joycon> getPairedJoycons(){ return pairedJoycons; }
 
     /**
      * Unpairs the joycon by removing it from the hash map of paired joycons and then closing the HID safely.
      * @param jc the joycon to unpair
      */
     public void unpairJoycon(Joycon jc){
-        if(pairedJoycons.containsKey(jc)){
-            HidDevice value = pairedJoycons.remove(jc);
-            value.close();
+        if(pairedJoycons.contains(jc)){
+            pairedJoycons.remove(jc);
+            jc.detach();
         }
     }
 
@@ -47,7 +51,7 @@ public class JoyconManager {
                         }else{
                             throw new IllegalStateException("Joy-Con not recognized.");
                         }
-                        pairedJoycons.put(new Joycon(hd, side), hd);
+                        pairedJoycons.add(new Joycon(hd, side));
                         System.out.println("Added Joy-Con: " + device.getProductString() + " with serial: " + device.getSerialNumberString());
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
