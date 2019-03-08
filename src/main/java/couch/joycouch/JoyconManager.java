@@ -1,14 +1,13 @@
 package couch.joycouch;
 
-import purejavahidapi.HidDevice;
-import purejavahidapi.HidDeviceInfo;
-import purejavahidapi.PureJavaHidApi;
+import couch.joycouch.joycon.*;
+import purejavahidapi.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A simple Joycon Manager. This simply just manages all the joy-cons connected. This is where you would do general
+ * A simple SingleJoycon Manager. This simply just manages all the joy-cons connected. This is where you would do general
  * operations on your joy-cons such as pairing and unpairing, or even sending unsafe data, aka your own custom packets
  * of data. WIP
  */
@@ -21,22 +20,18 @@ public class JoyconManager {
 
     public List<Joycon> getPairedJoycons(){ return pairedJoycons; }
 
-    /**
-     * Unpairs the joycon by removing it from the hash map of paired joycons and then closing the HID safely.
-     * @param jc the joycon to unpair
-     */
-    public void unpairJoycon(Joycon jc){
-        if(pairedJoycons.contains(jc)){
-            pairedJoycons.remove(jc);
-            jc.detach();
+    public CombinedJoycon combineJoycons(SingleJoycon jc1, SingleJoycon jc2){
+        CombinedJoycon combinedJoycon = new CombinedJoycon(jc1, jc2);
+        if(pairedJoycons.contains(jc1) && pairedJoycons.contains(jc2)){
+            if(jc1.getSide() == jc2.getSide()) throw new IllegalArgumentException("Both joycons are of the same side!");
+            this.pairedJoycons.remove(jc1);
+            this.pairedJoycons.remove(jc2);
+            this.pairedJoycons.add(combinedJoycon);
         }
+        return combinedJoycon;
     }
 
-    /**
-     * Searches for all joycons connected to the host device (desktop, laptop, etc) and then adds them to a hashmap of
-     * joycon/hid.
-     */
-    public void pairJoycons(){
+    public SingleJoycon pairJoycon(){
         List<HidDeviceInfo> connectedDevices = PureJavaHidApi.enumerateDevices();
         for(HidDeviceInfo device : connectedDevices){
             if(device.getProductString() != null && device.getPath() != null && device.getSerialNumberString() != null){
@@ -49,15 +44,22 @@ public class JoyconManager {
                         }else if(device.getProductString().endsWith("(R)")){
                             side = 1;
                         }else{
-                            throw new IllegalStateException("Joy-Con not recognized.");
+                            throw new IllegalStateException("Unknown SingleJoycon!");
                         }
-                        pairedJoycons.add(new Joycon(hd, side));
-                        System.out.println("Added Joy-Con: " + device.getProductString() + " with serial: " + device.getSerialNumberString());
+                        SingleJoycon jc = new SingleJoycon(hd, side, this.pairedJoycons.size());
+                        if(this.pairedJoycons.contains(jc)) continue;
+                        System.out.println(
+                                "Added Joy-Con: " + device.getProductString() +
+                                " with serial: " + device.getSerialNumberString() +
+                                " and player number: " + jc.getPlayerNumber()
+                        );
+                        return jc;
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
                     }
                 }
             }
         }
+        return null;
     }
 }

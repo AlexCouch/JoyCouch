@@ -14,14 +14,14 @@ package couch.joycouch.analog;
  */
 public enum AnalogStickPos {
 
-    RIGHT(1, 0, 0),
-    DOWN_RIGHT(1, -1, 1),
-    DOWN(0, -1, 2),
-    DOWN_LEFT(-1, -1, 3),
-    LEFT(-1, 0, 4),
-    UP_LEFT(-1, 1, 5),
-    UP(0, 1, 6),
-    UP_RIGHT(1, 1, 7),
+    UP(1, 0, 0),
+    UP_RIGHT(1, -1, 1),
+    RIGHT(0, -1, 2),
+    DOWN_RIGHT(-1, -1, 3),
+    DOWN(-1, 0, 4),
+    DOWN_LEFT(-1, 1, 5),
+    LEFT(0, 1, 6),
+    UP_LEFT(1, 1, 7),
     CENTER(0, 0, 8)
     ;
 
