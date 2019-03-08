@@ -1,6 +1,6 @@
-package couch.joycontest;
+package couch.joycouch.buttons;
 
-public enum JoyconCodes{
+public enum JoyconButtons {
     //Left Buttons
     UP("UP", 4, 1, 0),
     DOWN("DOWN", 2, 1, 0),
@@ -33,7 +33,7 @@ public enum JoyconCodes{
     private int reportIndex;
     private int side; //0 for left, 1 for right
 
-    JoyconCodes(String name, int code, int reportIndex, int side){
+    JoyconButtons(String name, int code, int reportIndex, int side){
         this.name = name;
         this.code = code;
         this.reportIndex = reportIndex;

@@ -1,4 +1,4 @@
-package couch.joycontest;
+package couch.joycouch;
 
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;

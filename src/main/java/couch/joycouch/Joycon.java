@@ -1,33 +1,55 @@
-package couch.joycontest;
+package couch.joycouch;
 
-import purejavahidapi.*;
+import couch.joycouch.analog.AnalogStick;
+import couch.joycouch.buttons.JoyconButtons;
+import couch.joycouch.handlers.*;
+import purejavahidapi.HidDevice;
 
 public class Joycon {
     private HidDevice handle;
     private int side;
-    private JoyconCodes currentButtonDown = null;
-    private int[] currentStickPos = new int[]{ 8, 6 };
-    private JoyconInputHandler inputHandler = null;
+
+    private boolean shared = false;
+    private Joycon sharedJc = null;
+
+    private AnalogStick analogStick;
+    private JoyconButtons currentButtonDown = null;
+
+    private JoyconButtonInputHandler buttonInputHandler = null;
+    private JoyconAnalogInputHandler analogInputHandler = null;
     private JoyconUnsafeInputHandler unsafeInputHandler = null;
+
     private boolean rumbleOn = false;
 
     public Joycon(HidDevice handle, int side){
         this.handle = handle;
         this.side = side;
+        this.analogStick = new AnalogStick(this);
         this.handle.setInputReportListener((source, reportID, reportData, reportLength) -> {
-            for(JoyconCodes code : JoyconCodes.values()){
+            this.analogStick.updatePos(reportData[3]);
+            for(JoyconButtons code : JoyconButtons.values()){
                 if(reportData[code.getReportIndex()] == code.getCode() && code.getSide() == this.side){
                     this.currentButtonDown = code;
-                    if(inputHandler != null) inputHandler.handleInput(this, this.currentButtonDown);
                     break;
                 }
             }
-            if(unsafeInputHandler != null) unsafeInputHandler.handleUnsafeInput(this, reportData);
+            if(buttonInputHandler != null) buttonInputHandler.handleButtonInput(this, this.currentButtonDown);
+            if(analogInputHandler != null) analogInputHandler.handleAnalogInput(this, this.analogStick.getPos());
+            if(unsafeInputHandler != null) unsafeInputHandler.handleUnsafeInput(this.handle, this, reportData);
         });
     }
 
     public void detach(){
         this.handle.close();
+    }
+
+    public boolean isShared(){ return this.shared; }
+
+    public Joycon getSharedJoycon(){ return this.sharedJc; }
+
+    public void addSharedJoycon(Joycon sharedJc){
+        this.shared = true;
+        this.sharedJc = sharedJc;
     }
 
     /**
@@ -63,11 +85,19 @@ public class Joycon {
         this.rumbleOn = true;
     }
 
+    public int getSide(){
+        return this.side;
+    }
+
     public void setJoyconUnsafeInputHandler(JoyconUnsafeInputHandler unsafeInputHandler){
         this.unsafeInputHandler = unsafeInputHandler;
     }
 
-    public void setJoyconInputHandler(JoyconInputHandler inputHandler){
-        this.inputHandler = inputHandler;
+    public void setJoyconButtonInputHandler(JoyconButtonInputHandler buttonInputHandler){
+        this.buttonInputHandler = buttonInputHandler;
+    }
+
+    public void setJoyconAnalogInputHandler(JoyconAnalogInputHandler analogInputHandler){
+        this.analogInputHandler = analogInputHandler;
     }
 }

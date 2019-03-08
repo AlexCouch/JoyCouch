@@ -1,4 +1,4 @@
-package couch.joycontest;
+package couch.joycouch;
 
 public class Rumble {
     private float lowFreq, highFreq, amplitude;
