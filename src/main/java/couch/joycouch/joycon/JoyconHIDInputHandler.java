@@ -16,7 +16,6 @@ public class JoyconHIDInputHandler implements InputReportListener {
 
     @Override
     public void onInputReport(HidDevice source, byte reportID, byte[] reportData, int reportLength) {
-        if(joycon.getSide() == 0) return;
         if(reportID == 48){
             if(enoughTimeElapsed(reportData[1]) || lastInputSent != -255) {
                 lastInputSent = reportData[1];

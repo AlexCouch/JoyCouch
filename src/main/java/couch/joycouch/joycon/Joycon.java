@@ -59,11 +59,11 @@ public class Joycon {
     public List<JoyconInputReportHandler> getInputReportHandlers(){ return this.inputReportHandlers; }
 
     private void setInputReportMode(){
-        byte[] buf = new byte[50];
-        buf[0] = 0x01;
-        buf[10] = 0x03;
-        buf[11] = 0x30;
-        this.device.setOutputReport(buf[0], buf, buf.length);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x01)
+                .setSubcommandID((byte)0x03)
+                .setSubcommandArg((byte)0x30)
+                .sendTo(this);
     }
 
     public boolean isCombined(){ return this.isCombined; }
@@ -79,21 +79,20 @@ public class Joycon {
     }
 
     public void enableRumble() {
-        byte[] buf = new byte[49];
-        buf[0] = 0x01;
-        buf[10] = 0x48;
-        buf[11] = 0x1;
-        this.device.setOutputReport(buf[0], buf, buf.length);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x01)
+                .setSubcommandID((byte)0x48)
+                .setSubcommandArg((byte)0x1)
+                .sendTo(this);
         this.rumbleOn = true;
     }
 
     public void rumbleJoycon() {
         if(!rumbleOn) enableRumble();
-        byte[] buf = new byte[49];
-        buf[0] = 0x10;
-        byte[] rumbleData = new Rumble(160f, 320f, 0.6f).getRumbleData();
-        System.arraycopy(rumbleData, 0, buf, 1, rumbleData.length);
-        this.device.setOutputReport((byte)0x10, buf, 50);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x10)
+                .setOutoutReportData(new Rumble(160f, 320f, 0.6f).getRumbleData())
+                .sendTo(this);
     }
 
     public int getPlayerNumber(){
@@ -101,10 +100,10 @@ public class Joycon {
     }
 
     public void setPlayerLED() {
-        byte[] buf = new byte[49];
-        buf[0] = 0x01;
-        buf[10] = 0x30;
-        buf[11] = (byte)2;
-        this.device.setOutputReport(buf[10], buf, buf.length);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x01)
+                .setSubcommandID((byte)0x30)
+                .setSubcommandArg((byte)0x1)
+                .sendTo(this);
     }
 }
