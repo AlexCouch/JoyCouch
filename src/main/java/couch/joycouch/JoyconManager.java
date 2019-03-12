@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A simple SingleJoycon Manager. This simply just manages all the joy-cons connected. This is where you would do general
+ * A simple Joycon Manager. This simply just manages all the joy-cons connected. This is where you would do general
  * operations on your joy-cons such as pairing and unpairing, or even sending unsafe data, aka your own custom packets
  * of data. WIP
  */
@@ -20,34 +20,23 @@ public class JoyconManager {
 
     public List<Joycon> getPairedJoycons(){ return pairedJoycons; }
 
-    public CombinedJoycon combineJoycons(SingleJoycon jc1, SingleJoycon jc2){
-        CombinedJoycon combinedJoycon = new CombinedJoycon(jc1, jc2);
-        if(pairedJoycons.contains(jc1) && pairedJoycons.contains(jc2)){
-            if(jc1.getSide() == jc2.getSide()) throw new IllegalArgumentException("Both joycons are of the same side!");
-            this.pairedJoycons.remove(jc1);
-            this.pairedJoycons.remove(jc2);
-            this.pairedJoycons.add(combinedJoycon);
-        }
-        return combinedJoycon;
-    }
-
-    public SingleJoycon pairJoycon(){
+    public Joycon pairJoycon(){
         List<HidDeviceInfo> connectedDevices = PureJavaHidApi.enumerateDevices();
         for(HidDeviceInfo device : connectedDevices){
             if(device.getProductString() != null && device.getPath() != null && device.getSerialNumberString() != null){
                 if(device.getPath().startsWith("Bluetooth") && device.getProductString().startsWith("Joy-Con")){
                     try {
                         HidDevice hd = PureJavaHidApi.openDevice(device);
-                        int side;
+                        int i;
                         if(device.getProductString().endsWith("(L)")){
-                            side = 0;
+                            i = 2;
                         }else if(device.getProductString().endsWith("(R)")){
-                            side = 1;
+                            i = 0;
                         }else{
-                            throw new IllegalStateException("Unknown SingleJoycon!");
+                            i = 0;
                         }
-                        SingleJoycon jc = new SingleJoycon(hd, side, this.pairedJoycons.size());
-                        if(this.pairedJoycons.contains(jc)) continue;
+                        Joycon jc = new Joycon(hd, i);
+                        this.pairedJoycons.add(jc);
                         System.out.println(
                                 "Added Joy-Con: " + device.getProductString() +
                                 " with serial: " + device.getSerialNumberString() +

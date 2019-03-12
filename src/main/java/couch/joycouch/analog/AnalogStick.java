@@ -1,16 +1,16 @@
 package couch.joycouch.analog;
 
-import couch.joycouch.joycon.SingleJoycon;
+import couch.joycouch.joycon.Joycon;
 
 public class AnalogStick {
-    private SingleJoycon jc;
+    private Joycon jc;
     private byte inVal = -1;
 
-    public AnalogStick(SingleJoycon jc){
+    public AnalogStick(Joycon jc){
         this.jc = jc;
     }
 
-    public SingleJoycon getJoycon(){
+    public Joycon getJoycon(){
         return this.jc;
     }
 

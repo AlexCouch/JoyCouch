@@ -44,4 +44,13 @@ public enum JoyconButtons {
     public int getCode(){ return this.code; }
     public int getReportIndex(){ return this.reportIndex; }
     public int getSide(){ return this.side; }
+
+    public static JoyconButtons getButtonFromInt(int buttonInt){
+        for(JoyconButtons button : JoyconButtons.values()){
+            if(button.code == buttonInt){
+                return button;
+            }
+        }
+        return null;
+    }
 }
