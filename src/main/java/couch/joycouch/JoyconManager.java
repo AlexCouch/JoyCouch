@@ -14,8 +14,15 @@ public class JoyconManager {
     public static final JoyconManager INSTANCE = new JoyconManager();
 
     private Joycon left, right;
+    private int frequency = 50;
 
     private JoyconManager(){}
+
+    public void setInputFrequency(int frequency){
+        this.frequency = frequency;
+    }
+
+    public int getInputFrequency(){ return this.frequency; }
 
     public void init(){
         List<HidDeviceInfo> connectedDevices = PureJavaHidApi.enumerateDevices();
@@ -48,11 +55,9 @@ public class JoyconManager {
     }
 
     public Joycon getLeft(){
-        if(this.left == null) throw new RuntimeException("Left joycon not available!");
         return this.left;
     }
     public Joycon getRight(){
-        if(this.right == null) throw new RuntimeException("Right joycon not available!");
         return this.right;
     }
 }

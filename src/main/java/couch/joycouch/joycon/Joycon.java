@@ -1,7 +1,6 @@
 package couch.joycouch.joycon;
 
 import couch.joycouch.Rumble;
-import couch.joycouch.buttons.JoyconButtons;
 import couch.joycouch.handlers.JoyconInputReportHandler;
 import purejavahidapi.HidDevice;
 
@@ -24,21 +23,14 @@ public class Joycon {
         this.device = device;
         this.setPlayerLED();
         this.setInputReportMode();
-        device.setInputReportListener((source, reportID, reportData, reportLength) -> {
-            if(reportID == 48){
-                if(reportData[3 + this.side] != 0){
-                    JoyconInputReport inputReport = new JoyconInputReport(this);
-                    inputReport.setButtonStatus(JoyconButtons.getButtonFromInt(reportData[3 + this.side]));
-                    inputReportHandlers.forEach(h -> h.handleInputReport(inputReport));
-                }
-            }
-        });
+        device.setInputReportListener(new JoyconHIDInputHandler(this));
         device.setDeviceRemovalListener(HidDevice::close);
     }
 
     public void setSide(int side){ this.side = side; }
 
     public void addInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandlers.add(handler); }
+    public List<JoyconInputReportHandler> getInputReportHandlers(){ return this.inputReportHandlers; }
 
     private void setInputReportMode(){
         byte[] buf = new byte[50];
