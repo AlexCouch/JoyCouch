@@ -5,21 +5,23 @@ import couch.joycouch.buttons.JoyconButtons;
 import couch.joycouch.handlers.JoyconInputReportHandler;
 import purejavahidapi.HidDevice;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Joycon {
     private HidDevice device;
     private boolean isCombined = false;
 
-    protected int side;
+    private int side;
 
     protected boolean rumbleOn = false;
 
-    private JoyconInputReportHandler inputReportHandler = null;
+    private List<JoyconInputReportHandler> inputReportHandlers = new ArrayList<>();
 
     protected int playerNumber;
 
-    public Joycon(HidDevice device, int side) {
+    public Joycon(HidDevice device) {
         this.device = device;
-        this.side = side;
         this.setPlayerLED();
         this.setInputReportMode();
         device.setInputReportListener((source, reportID, reportData, reportLength) -> {
@@ -27,15 +29,16 @@ public class Joycon {
                 if(reportData[3 + this.side] != 0){
                     JoyconInputReport inputReport = new JoyconInputReport(this);
                     inputReport.setButtonStatus(JoyconButtons.getButtonFromInt(reportData[3 + this.side]));
-                    if(inputReportHandler != null) inputReportHandler.handleInputReport(inputReport);
+                    inputReportHandlers.forEach(h -> h.handleInputReport(inputReport));
                 }
             }
         });
         device.setDeviceRemovalListener(HidDevice::close);
     }
 
-    public void setInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandler = handler; }
-    public JoyconInputReportHandler getInputReportHandler(){ return this.inputReportHandler; }
+    public void setSide(int side){ this.side = side; }
+
+    public void addInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandlers.add(handler); }
 
     private void setInputReportMode(){
         byte[] buf = new byte[50];
