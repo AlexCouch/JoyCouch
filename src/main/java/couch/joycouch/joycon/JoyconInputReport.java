@@ -1,7 +1,7 @@
 package couch.joycouch.joycon;
 
-import couch.joycouch.analog.AnalogStickPos;
-import couch.joycouch.buttons.JoyconButtons;
+import couch.joycouch.analog.AnalogStickStatus;
+import couch.joycouch.buttons.ButtonStatus;
 
 /**
  * This JoyconInputReport represents an abstraction of the HID input report.<br>
@@ -28,22 +28,35 @@ public class JoyconInputReport {
      */
     private Joycon joycon;
     /**
-     * The button being pressed, if any
+     * A more comprehensive report on the button statuses. Include information for both left and right JoyCons.
+     * <br><br>
+     * This allows you to get the buttons of any JoyCon that sends input. It is safe because the right will<br>
+     * only send right JoyCon button statuses. So a right JoyCon input handler cannot receive nor handle button statuses<br>
+     * from the left JoyCon. This avoids the unneccessary use of bytes and ints to get Buttons, and this also allows you<br>
+     * to have shared input reports for handling multi-button inputs. However, multi-button inputs is still in the works<br>
+     * since the JoyCon adds bitwise-and's the two active buttons together. The {@link ButtonStatus} will need to support<br>
+     * detecting this in the future (as the time of this writing).
+     *
+     * @see ButtonStatus
      */
-    private JoyconButtons button = null;
+    private ButtonStatus buttonStatus = null;
     /**
-     * The analog stick position, if any
+     * A more comprehensive report on the analog stick statuses. Includes information for both left and right sticks.
+     * <br><br>
+     * This allows you to have access to the status of both analog sticks and their horizontal and vertical axes.<br>
+     * Having these axes allows you to accurately translate analog pos to in-game maths, smoothly. This is good for smooth<br>
+     * camera movement.
      */
-    private AnalogStickPos analogStickPos = null;
+    private AnalogStickStatus analogStickStatus = null;
 
     public JoyconInputReport(Joycon joycon){
         this.joycon = joycon;
     }
 
-    public void setButtonStatus(JoyconButtons button){ this.button = button; }
-    public void setAnalogStickPos(AnalogStickPos analogStickPos){ this.analogStickPos = analogStickPos; }
+    public void setButtonStatus(ButtonStatus buttonStatus){ this.buttonStatus = buttonStatus; }
+    public void setAnalogStickStatus(AnalogStickStatus analogStickStatus){ this.analogStickStatus = analogStickStatus; }
 
     public Joycon getJoycon(){ return this.joycon; }
-    public JoyconButtons getActiveButton(){ return this.button; }
-    public AnalogStickPos getAnalogStickPos(){ return this.analogStickPos; }
+    public ButtonStatus getButtonStatus(){ return this.buttonStatus; }
+    public AnalogStickStatus getAnalogStickStatus(){ return this.analogStickStatus; }
 }

@@ -1,5 +1,8 @@
 package couch.joycouch;
 
+import couch.joycouch.analog.AnalogStick;
+import couch.joycouch.analog.AnalogStickStatus;
+import couch.joycouch.buttons.ButtonStatus;
 import couch.joycouch.buttons.JoyconButtons;
 import couch.joycouch.handlers.JoyconInputReportHandler;
 import couch.joycouch.joycon.JoyconInputReport;
@@ -7,7 +10,7 @@ import couch.joycouch.joycon.JoyconInputReport;
 public class JoyconTest {
     public static void main(String[] args){
         JoyconManager.INSTANCE.init();
-        JoyconManager.INSTANCE.setInputFrequency(50);
+        JoyconManager.INSTANCE.setInputFrequency(100);
         if(JoyconManager.INSTANCE.getLeft() != null){
             JoyconManager.INSTANCE.getLeft().addInputReportHandler(new LeftJoyconButtonHandler());
         }
@@ -20,12 +23,22 @@ public class JoyconTest {
 
         @Override
         public void handleInputReport(JoyconInputReport report) {
-            if(report.getJoycon().getSide() != 0) return;
-            JoyconButtons button = report.getActiveButton();
+            ButtonStatus buttonStatus  = report.getButtonStatus();
+            JoyconButtons button = buttonStatus.getActiveRightButton();
             if(button != null){
                 if(button.getName().equals("ZR")){
                     report.getJoycon().rumbleJoycon();
                 }
+            }
+            AnalogStickStatus stickStatus = report.getAnalogStickStatus();
+            AnalogStick stick = stickStatus.getRightAnalogStick();
+            System.out.println("Right horizontal: " + stick.getHorizontal());
+            System.out.println("Right vertical: " + stick.getVertical());
+            System.out.println();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -34,8 +47,8 @@ public class JoyconTest {
 
         @Override
         public void handleInputReport(JoyconInputReport report) {
-            if(report.getJoycon().getSide() != 2) return;
-            JoyconButtons button = report.getActiveButton();
+            ButtonStatus buttonStatus = report.getButtonStatus();
+            JoyconButtons button = buttonStatus.getActiveLeftButton();
             if(button != null){
                 if(button.getName().equals("ZL")){
                     report.getJoycon().rumbleJoycon();

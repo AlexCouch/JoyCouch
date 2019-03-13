@@ -43,6 +43,17 @@ public class Joycon {
      */
     private List<JoyconInputReportHandler> inputReportHandlers = new ArrayList<>();
 
+    /**
+     * An integer representing the battery life of this JoyCon.
+     *
+     * 8 - Full
+     * 6 - Medium
+     * 4 - Low
+     * 2 - Critical
+     * 0 - Empty
+     */
+    private int batteryLife = -1;
+
     protected int playerNumber;
 
     public Joycon(HidDevice device) {
@@ -54,6 +65,10 @@ public class Joycon {
     }
 
     public void setSide(int side){ this.side = side; }
+
+    public void setBatteryLife(int batteryLife){ this.batteryLife = batteryLife; }
+
+    public int getBatteryLife(){ return this.batteryLife; }
 
     public void addInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandlers.add(handler); }
     public List<JoyconInputReportHandler> getInputReportHandlers(){ return this.inputReportHandlers; }
