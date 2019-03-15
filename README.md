@@ -1,7 +1,7 @@
 # JoyCouch
 My own library (obviously in the works) that allows the implementation of the Nintendo Joy-Con. This requires bluetooth.
 
-JoyCouch is a WIP lightweight, flexible, thread-safe Nintendo Joy-Con API. It is very early in development and currently includes:
+JoyCouch is a WIP easy-to-use, efficient, flexible, thread-safe Nintendo Joy-Con API. It is very early in development and currently includes:
 * Input Handlers
 * Rumbling
 * JoyconManager for managing the interactions with either left and right JoyCons
