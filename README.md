@@ -25,3 +25,5 @@ JoyCouch is going to include the following (note: the following is not a final l
 * Multiple player support
 
 Currently referencing this: https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering
+
+#NOTE: There is currently not working version at the moment. It currently going under a lot of refactoring, reoganization, and optimizations. There are lots of testing that needs to be done. Any contribution must be discussed with me on discord @Alex Couch#5275. Please specify your first message with me to include this project so I know why you're messaging me.
