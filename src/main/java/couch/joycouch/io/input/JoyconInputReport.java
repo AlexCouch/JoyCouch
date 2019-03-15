@@ -1,7 +1,8 @@
-package couch.joycouch.joycon;
+package couch.joycouch.io.input;
 
 import couch.joycouch.analog.AnalogStickStatus;
 import couch.joycouch.buttons.ButtonStatus;
+import couch.joycouch.joycon.Joycon;
 
 /**
  * This JoyconInputReport represents an abstraction of the HID input report.<br>
@@ -14,13 +15,13 @@ import couch.joycouch.buttons.ButtonStatus;
  * At the time of this writing, this report does not contain gyro/accel <br>
  * information, nor does it contain properly calculated/calibrated analog stick information.<br>
  * <br>
- * This input report is passed into a {@link couch.joycouch.handlers.JoyconInputReportHandler JoyconInputReportHandler},
+ * This input report is passed into a {@link JoyconInputReportHandler JoyconInputReportHandler},
  * which is implemented by users of this API <br>
  * for handling input.
  *
  * @author Alex Couch
  * @version 0.0.1
- * @see couch.joycouch.handlers.JoyconInputReportHandler
+ * @see JoyconInputReportHandler
  */
 public class JoyconInputReport {
     /**

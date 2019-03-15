@@ -4,8 +4,8 @@ import couch.joycouch.analog.AnalogStick;
 import couch.joycouch.analog.AnalogStickStatus;
 import couch.joycouch.buttons.ButtonStatus;
 import couch.joycouch.buttons.JoyconButtons;
-import couch.joycouch.handlers.JoyconInputReportHandler;
-import couch.joycouch.joycon.JoyconInputReport;
+import couch.joycouch.io.input.JoyconInputReport;
+import couch.joycouch.io.input.JoyconInputReportHandler;
 
 public class JoyconTest {
     public static void main(String[] args){
@@ -31,15 +31,9 @@ public class JoyconTest {
                 }
             }
             AnalogStickStatus stickStatus = report.getAnalogStickStatus();
-            AnalogStick stick = stickStatus.getRightAnalogStick();
-            System.out.println("Right horizontal: " + stick.getHorizontal());
-            System.out.println("Right vertical: " + stick.getVertical());
-            System.out.println();
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            AnalogStick stick = stickStatus.getAnalogStick();
+            JoyconManager.LOGGER.info("Right horizontal: {}", stick.getHorizontal());
+            JoyconManager.LOGGER.info("Right vertical: {}\n\n", stick.getVertical());
         }
     }
 
@@ -54,6 +48,10 @@ public class JoyconTest {
                     report.getJoycon().rumbleJoycon();
                 }
             }
+            AnalogStickStatus stickStatus = report.getAnalogStickStatus();
+            AnalogStick stick = stickStatus.getAnalogStick();
+            JoyconManager.LOGGER.info("Right horizontal: {}", stick.getHorizontal());
+            JoyconManager.LOGGER.info("Right vertical: {}\n\n", stick.getVertical());
         }
     }
 }

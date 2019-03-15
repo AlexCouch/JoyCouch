@@ -1,0 +1,24 @@
+{
+  "configuration": {
+    "status": "info",
+    "appenders": {
+      "appender": [
+        {
+          "type": "Console",
+          "name": "STDOUT",
+          "PatternLayout": {
+            "pattern": "[%t (%c{1}) @ %d{HH:mm:ss,SSS}]: %level{WARN=Warning, DEBUG=Debug, ERROR=Error, INFO=Info, TRACE=Trace} - %m"
+          }
+        }
+      ]
+    },
+    "loggers": {
+      "root": {
+        "level": "all",
+        "AppenderRef": {
+          "ref": "STDOUT"
+        }
+      }
+    }
+  }
+}

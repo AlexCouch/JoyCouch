@@ -1,6 +1,4 @@
-package couch.joycouch.handlers;
-
-import couch.joycouch.joycon.JoyconInputReport;
+package couch.joycouch.io.input;
 
 /**
  * This interface must be implemented for JoyCon input handling. This is called upon input being received by the<br>

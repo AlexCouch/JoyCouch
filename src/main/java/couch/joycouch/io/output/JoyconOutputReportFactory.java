@@ -1,4 +1,6 @@
-package couch.joycouch.joycon;
+package couch.joycouch.io.output;
+
+import couch.joycouch.joycon.Joycon;
 
 public class JoyconOutputReportFactory {
     public static final JoyconOutputReportFactory INSTANCE = new JoyconOutputReportFactory();

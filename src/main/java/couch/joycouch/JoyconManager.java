@@ -1,6 +1,11 @@
 package couch.joycouch;
 
+import couch.joycouch.io.input.JoyconFullInputReportHandler;
+import couch.joycouch.io.input.hid.HIDInputReportHandler;
 import couch.joycouch.joycon.Joycon;
+import couch.joycouch.spi.JoyconSPIMemoryInputHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import purejavahidapi.*;
 
 import java.util.List;
@@ -11,6 +16,8 @@ import java.util.List;
  * of data. WIP
  */
 public class JoyconManager {
+    public static final Logger LOGGER = LogManager.getLogger();
+
     public static final JoyconManager INSTANCE = new JoyconManager();
 
     /**
@@ -22,7 +29,7 @@ public class JoyconManager {
     /**
      * This field is used to decide how long to wait until the next input report is accepted.
      *
-     * @see couch.joycouch.joycon.JoyconHIDInputHandler#onInputReport(HidDevice, byte, byte[], int) JoyconHIDInputHandler#onInputReport
+     * @see HIDInputReportHandler#onInputReport(HidDevice, byte, byte[], int) HIDInputReportHandler#onInputReport
      */
     private int frequency = 50;
 
@@ -58,11 +65,10 @@ public class JoyconManager {
                         }else{
                             throw new IllegalStateException("Could not recognize joycon!");
                         }
-                        System.out.println(
-                                "Added Joy-Con: " + device.getProductString() +
-                                " with serial: " + device.getSerialNumberString() +
-                                " and player number: " + jc.getPlayerNumber()
-                        );
+                        jc.addHIDInputReportHandler(new JoyconFullInputReportHandler());
+                        jc.addHIDSubcommandInputHandler(new JoyconSPIMemoryInputHandler());
+                        jc.init();
+                        LOGGER.info("Added Joy-Con: {0}", device.getProductString());
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
                     }
