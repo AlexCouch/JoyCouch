@@ -6,6 +6,7 @@ import couch.joycouch.buttons.ButtonStatus;
 import couch.joycouch.buttons.JoyconButtons;
 import couch.joycouch.io.input.JoyconInputReport;
 import couch.joycouch.io.input.JoyconInputReportHandler;
+import couch.joycouch.joycon.Joycon;
 
 public class JoyconTest {
     public static void main(String[] args){
@@ -27,7 +28,7 @@ public class JoyconTest {
             JoyconButtons button = buttonStatus.getActiveRightButton();
             if(button != null){
                 if(button.getName().equals("ZR")){
-                    report.getJoycon().rumbleJoycon();
+                    report.getJoycon().requestAction(Joycon::rumbleJoycon);
                 }
             }
             AnalogStickStatus stickStatus = report.getAnalogStickStatus();

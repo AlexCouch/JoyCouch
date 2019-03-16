@@ -9,11 +9,14 @@ public class ShutdownHook extends Thread implements JoyconHIDSubcommandInputHand
 
     @Override
     public synchronized void run() {
+        Joycon joycon;
         if(JoyconManager.INSTANCE.getLeft() != null){
-            JoyconManager.INSTANCE.getLeft().reset();
+            joycon = JoyconManager.INSTANCE.getLeft();
+            joycon.shutdown();
         }
         if(JoyconManager.INSTANCE.getRight() != null){
-            JoyconManager.INSTANCE.getRight().reset();
+            joycon = JoyconManager.INSTANCE.getRight();
+            joycon.shutdown();
         }
     }
 

@@ -1,5 +1,6 @@
 package couch.joycouch.io.input.delegate;
 
+import couch.joycouch.JoyconManager;
 import couch.joycouch.joycon.Joycon;
 import purejavahidapi.HidDevice;
 
@@ -32,6 +33,7 @@ public class JoyconInputHandlerDelegate {
                 });
             }
             this.joycon.notify(); //Notify the Joycon class that input has been handled, if it is waiting for input responses
+            JoyconManager.LOGGER.debug("Joycon has been notified!");
         }
     }
 }

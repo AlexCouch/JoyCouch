@@ -11,8 +11,8 @@ import couch.joycouch.spi.MemoryManager;
 import couch.joycouch.spi.SPIMemory;
 import purejavahidapi.HidDevice;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * This class is a wrapper that contains all the information for working with a JoyCon. It includes the HidDevice,<br>
@@ -20,7 +20,7 @@ import java.util.List;
  * handlers. This JoyCon class contains a list of {@link JoyconInputReportHandler JoyconInputReportHandlers} which are all<br>
  * invoked by the {@link HIDInputReportHandler JoyCon's HID input report handler}.
  */
-public class Joycon {
+public class Joycon extends Thread{
     public synchronized Joycon getInstance(){
         return this;
     }
@@ -55,7 +55,12 @@ public class Joycon {
     private List<JoyconInputReportHandler> inputReportHandlers = new ArrayList<>();
     private List<JoyconHIDInputHandler> hidInputReportHandlers = new ArrayList<>();
     private List<JoyconHIDSubcommandInputHandler> hidSubcommandInputHandlers = new ArrayList<>();
+    private Queue<ActionRequest> joyconActonRequest = new ConcurrentLinkedQueue<>();
 
+    public interface ActionRequest{
+
+        void requestAction(Joycon joycon);
+    }
     /**
      * An integer representing the battery life of this JoyCon.
      *
@@ -69,25 +74,37 @@ public class Joycon {
 
     protected int playerNumber;
 
-    private List<SPIMemory> memoryCaches = new ArrayList<>();
     private HIDInputReportHandler hidInputReportHandler = new HIDInputReportHandler(this);
-
     private AnalogStickCalibrator calibrator = null;
-    private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
 
+    private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
     private MemoryManager memoryManager = new MemoryManager(this);
+    private boolean running = false;
 
     public Joycon(HidDevice device) {
         this.device = device;
     }
 
-    public void init(){
+    @Override
+    public void run() {
         JoyconManager.LOGGER.debug("Initializing JoyCon...");
         device.setInputReportListener(hidInputReportHandler);
         inputHandlerThread.start();
         createStickCalibrator();
         this.setPlayerLED();
         this.setInputReportMode();
+        running = true;
+        while(running){
+            ActionRequest request = this.joyconActonRequest.poll();
+            if(request != null){
+                request.requestAction(this);
+            }
+        }
+    }
+
+    public void shutdown(){
+        this.reset();
+        running = false;
     }
 
     public JoyconInputHandlerThread getInputHandlerThread(){ return this.inputHandlerThread; }
@@ -141,6 +158,10 @@ public class Joycon {
     public List<JoyconInputReportHandler> getInputReportHandlers(){ return this.inputReportHandlers; }
     public List<JoyconHIDSubcommandInputHandler> getHidSubcommandInputHandlers(){ return this.hidSubcommandInputHandlers; }
     public List<JoyconHIDInputHandler> getHidInputReportHandlers(){ return this.hidInputReportHandlers; }
+
+    public void requestAction(ActionRequest actionRequest){
+        this.joyconActonRequest.add(actionRequest);
+    }
 
     private synchronized void setInputReportMode(){
         try {

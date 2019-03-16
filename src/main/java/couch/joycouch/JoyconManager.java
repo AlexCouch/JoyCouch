@@ -54,6 +54,7 @@ public class JoyconManager {
      */
     public void init(){
         LOGGER.info("Initializing JoyCon Manager.");
+        Runtime.getRuntime().addShutdownHook(this.shutdownHook);
         List<HidDeviceInfo> connectedDevices = PureJavaHidApi.enumerateDevices();
         for(HidDeviceInfo device : connectedDevices){
             if(device.getProductString() != null && device.getPath() != null && device.getSerialNumberString() != null){
@@ -75,7 +76,7 @@ public class JoyconManager {
                         }
                         jc.addHIDInputReportHandler(new JoyconFullInputReportHandler());
                         jc.addHIDSubcommandInputHandler(new JoyconSPIMemoryInputHandler());
-                        jc.init();
+                        jc.start();
                         LOGGER.info("Added Joy-Con: {}", device.getProductString());
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
@@ -83,7 +84,6 @@ public class JoyconManager {
                 }
             }
         }
-        Runtime.getRuntime().addShutdownHook(this.shutdownHook);
     }
 
     public Joycon getLeft(){

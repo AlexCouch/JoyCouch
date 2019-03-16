@@ -1,18 +1,18 @@
 package couch.joycouch.analog;
 
 public class AnalogStick {
-    private int horizontal, vertical;
+    private float horizontal, vertical;
 
-    public AnalogStick(int horizontal, int vertical){
+    public AnalogStick(float horizontal, float vertical){
         this.horizontal = horizontal;
         this.vertical = vertical;
     }
 
-    public int getHorizontal(){
+    public float getHorizontal(){
         return this.horizontal;
     }
 
-    public int getVertical(){
+    public float getVertical(){
         return this.vertical;
     }
 }

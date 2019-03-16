@@ -13,18 +13,18 @@ public class AnalogStickCalibrator {
     private int side, center_x, center_y, x_min, x_max, y_min, y_max, dead_zone;
 
     public AnalogStickCalibrator(int side, SPIMemory calMemory, SPIMemory deadZoneMemory){
-        this.stick_precal = Arrays.copyOfRange(calMemory.getReadMemoryData(), 3, 3 + calMemory.getReadMemoryData()[2]);
-        this.dead_zone = getDeadZoneFrom(Arrays.copyOfRange(deadZoneMemory.getReadMemoryData(), 3, 3 + deadZoneMemory.getReadMemoryData()[2]));
+        this.stick_precal = Arrays.copyOfRange(calMemory.getReadMemoryData(), 2, 2 + calMemory.getReadMemoryData()[2]);
+        this.dead_zone = getDeadZoneFrom(Arrays.copyOfRange(deadZoneMemory.getReadMemoryData(), 4, 4 + deadZoneMemory.getReadMemoryData()[2]));
         this.side = side;
         calibrate();
         sortCalibratedData();
     }
 
-    public int[] getStickPos(int data1, int data2, int data3){
-        int[] pos = new int[2];
+    public float[] getStickPos(int data1, int data2, int data3){
+        float[] pos = new float[2];
         int[] buf = new int[]{ this.getHorizontal(data1, data2), this.getVertical(data2, data3) };
         for(int i = 0; i < 2; i++){
-            int diff = buf[0] - this.stick_cal[2 + i];
+            float diff = buf[i] - this.stick_cal[2 + i];
             if(Math.abs(diff) < this.dead_zone) buf[i] = 0;
             else if(diff > 0){
                 pos[i] = diff / buf[i];
@@ -52,7 +52,7 @@ public class AnalogStickCalibrator {
     public int getYMax(){ return this.y_max; }
 
     private int getDeadZoneFrom(byte[] data){
-        return (data[4] << 8) & 0xF00 | data[3];
+        return (data[3] << 8) & 0xF00 | data[2];
     }
 
     private void calibrate(){
