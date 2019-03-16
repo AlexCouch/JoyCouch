@@ -68,7 +68,7 @@ public class Joycon extends Thread{
 
 
     /*
-                            Startup/Shutdown
+                        Startup/Shutdown
      */
     public void shutdown(){
         this.reset();
