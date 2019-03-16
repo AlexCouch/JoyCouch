@@ -1,4 +1,4 @@
-package couch.joycouch.spi;
+package couch.joycouch.joycon.properties.spi;
 
 public class SPIMemory {
     private byte[] readMemoryAddress = new byte[5];

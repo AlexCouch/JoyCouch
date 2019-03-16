@@ -3,7 +3,7 @@ package couch.joycouch.handlers;
 import couch.joycouch.JoyconManager;
 import couch.joycouch.joycon.Joycon;
 import couch.joycouch.io.input.hid.JoyconHIDSubcommandInputHandler;
-import couch.joycouch.spi.SPIMemory;
+import couch.joycouch.joycon.properties.spi.SPIMemory;
 
 import java.util.Arrays;
 

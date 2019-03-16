@@ -1,6 +1,6 @@
 package couch.joycouch.analog;
 
-import couch.joycouch.spi.SPIMemory;
+import couch.joycouch.joycon.properties.spi.SPIMemory;
 
 import java.util.Arrays;
 

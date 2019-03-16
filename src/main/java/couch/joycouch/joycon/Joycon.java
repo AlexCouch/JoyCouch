@@ -7,8 +7,9 @@ import couch.joycouch.io.input.JoyconInputHandlerThread;
 import couch.joycouch.io.input.JoyconInputReportHandler;
 import couch.joycouch.io.input.hid.*;
 import couch.joycouch.io.output.JoyconOutputReportFactory;
-import couch.joycouch.spi.MemoryManager;
-import couch.joycouch.spi.SPIMemory;
+import couch.joycouch.joycon.properties.battery.BatteryInformation;
+import couch.joycouch.joycon.properties.spi.MemoryManager;
+import couch.joycouch.joycon.properties.spi.SPIMemory;
 import purejavahidapi.HidDevice;
 
 import java.util.*;
@@ -24,7 +25,7 @@ public class Joycon extends Thread{
 
     private int side;
     protected boolean rumbleOn = false;
-    private int batteryLife = -1;
+    private BatteryInformation batteryInfo;
     protected int playerNumber;
     private AnalogStickCalibrator calibrator = null;
     private boolean running = false;
@@ -120,10 +121,10 @@ public class Joycon extends Thread{
 
     //Property setters
     public void setSide(int side){ this.side = side; }
-    public void setBatteryLife(int batteryLife){ this.batteryLife = batteryLife; }
+    public void setBatteryInfo(BatteryInformation batteryInfo){ this.batteryInfo = batteryInfo; }
 
     //Property getters
-    public synchronized int getBatteryLife(){
+    public synchronized BatteryInformation getBatteryLife(){
         try {
             JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01)
                     .setSubcommandID((byte) 0x50)
@@ -133,7 +134,7 @@ public class Joycon extends Thread{
             JoyconManager.LOGGER.error(e.getMessage());
             e.printStackTrace();
         }
-        return this.batteryLife;
+        return this.batteryInfo;
     }
     public HidDevice getDevice() { return this.device; }
     public int getSide(){ return this.side; }

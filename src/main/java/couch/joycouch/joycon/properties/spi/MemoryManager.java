@@ -1,4 +1,4 @@
-package couch.joycouch.spi;
+package couch.joycouch.joycon.properties.spi;
 
 import couch.joycouch.io.output.JoyconOutputReportFactory;
 import couch.joycouch.joycon.Joycon;
