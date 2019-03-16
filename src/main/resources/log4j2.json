@@ -7,12 +7,28 @@
           "type": "Console",
           "name": "STDOUT",
           "PatternLayout": {
-            "pattern": "[%t (%C{1}:%M) @ %d{HH:mm:ss,SSS}]: %level{WARN=Warning, DEBUG=Debug, ERROR=Error, INFO=Info, TRACE=Trace} - %m%n"
+            "pattern": "[%t:%C{1} - %d{HH:mm:ss,SSS}]: %level{WARN=Warning, DEBUG=Debug, ERROR=Error, INFO=Info, TRACE=Trace} - %m%n"
+          }
+        },
+        {
+          "type": "Console",
+          "name": "DEBUGGER",
+          "PatternLayout": {
+            "pattern": "%style{Yellow}{%t, %C %d{HH:mm:ss,SSS}} DEBUGGER - %m%n"
           }
         }
       ]
     },
     "loggers": {
+      "logger": [
+        {
+          "name": "debug",
+          "level": "debug",
+          "AppenderRef": {
+            "ref": "DEBUGGER"
+          }
+        }
+      ],
       "root": {
         "level": "all",
         "AppenderRef": {

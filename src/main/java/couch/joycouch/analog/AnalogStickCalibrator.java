@@ -2,16 +2,19 @@ package couch.joycouch.analog;
 
 import couch.joycouch.spi.SPIMemory;
 
+import java.util.Arrays;
+
 public class AnalogStickCalibrator {
 
     //The stick calibration data read from SPI flash memory
-    private byte[] stick_precal, stick_cal = new byte[6];
+    private byte[] stick_precal;
+    private byte[] stick_cal = new byte[6];
 
     private int side, center_x, center_y, x_min, x_max, y_min, y_max, dead_zone;
 
     public AnalogStickCalibrator(int side, SPIMemory calMemory, SPIMemory deadZoneMemory){
-        this.stick_precal = calMemory.getReadMemoryData();
-        this.dead_zone = getDeadZoneFrom(deadZoneMemory.getReadMemoryData());
+        this.stick_precal = Arrays.copyOfRange(calMemory.getReadMemoryData(), 3, 3 + calMemory.getReadMemoryData()[2]);
+        this.dead_zone = getDeadZoneFrom(Arrays.copyOfRange(deadZoneMemory.getReadMemoryData(), 3, 3 + deadZoneMemory.getReadMemoryData()[2]));
         this.side = side;
         calibrate();
         sortCalibratedData();

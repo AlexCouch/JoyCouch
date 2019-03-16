@@ -7,6 +7,7 @@ import couch.joycouch.io.input.JoyconInputHandlerThread;
 import couch.joycouch.io.input.JoyconInputReportHandler;
 import couch.joycouch.io.input.hid.*;
 import couch.joycouch.io.output.JoyconOutputReportFactory;
+import couch.joycouch.spi.MemoryManager;
 import couch.joycouch.spi.SPIMemory;
 import purejavahidapi.HidDevice;
 
@@ -74,6 +75,8 @@ public class Joycon {
     private AnalogStickCalibrator calibrator = null;
     private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
 
+    private MemoryManager memoryManager = new MemoryManager(this);
+
     public Joycon(HidDevice device) {
         this.device = device;
     }
@@ -89,6 +92,8 @@ public class Joycon {
     }
 
     public JoyconInputHandlerThread getInputHandlerThread(){ return this.inputHandlerThread; }
+
+    public MemoryManager getMemoryManager(){ return this.memoryManager; }
 
     private synchronized void reset(){
         try{
@@ -111,43 +116,32 @@ public class Joycon {
     private synchronized void createStickCalibrator(){
         JoyconManager.LOGGER.debug("Creating analog stick calibrator...");
         if (this.side == 0) { //Right
-            try {
-                byte[] leftAddress = new byte[]{(byte) 0x60, (byte) 0x3D};
-                byte[] leftDevParams = new byte[]{(byte) 0x60, (byte) 0x86};
-                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(leftAddress).sendTo(this);
-                JoyconManager.LOGGER.debug("Waiting for calibration data...");
-                this.wait();
-                JoyconManager.LOGGER.debug("About to send output report with id {} and subcommand id {}", 0x01, 0x10);
-                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(leftDevParams).sendTo(this);
-                JoyconManager.LOGGER.debug("Waiting for device parameters data...");
-                this.wait();
-                JoyconManager.LOGGER.debug("Calibration data received...creating calibrator...");
-                this.calibrator = new AnalogStickCalibrator(
-                        this.side,
-                        this.getMemoryReader(leftAddress),
-                        this.getMemoryReader(leftDevParams)
-                );
-            } catch (InterruptedException e) {
-                JoyconManager.LOGGER.error(e.getMessage());
-                e.printStackTrace();
-            }
+            SPIMemory calMem = this.memoryManager.readMemory((byte)0x60, (byte)0x46, (byte)9);
+            SPIMemory devParamMem = this.memoryManager.readMemory((byte)0x60, (byte)0x98, (byte)16);
+            this.calibrator = new AnalogStickCalibrator(
+                    this.side,
+                    calMem,
+                    devParamMem
+            );
         } else if (this.side == 1) { //Left
-            try {
-                byte[] rightAddress = new byte[]{(byte) 0x60, (byte) 0x46};
-                byte[] rightDevParams = new byte[]{(byte) 0x60, (byte) 0x98};
-                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(rightAddress).sendTo(this);
-                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(rightDevParams).sendTo(this);
-                this.wait();
-                this.calibrator = new AnalogStickCalibrator(
-                        this.side,
-                        this.getMemoryReader(rightAddress),
-                        this.getMemoryReader(rightDevParams)
-                );
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            SPIMemory calMem = this.memoryManager.readMemory((byte)0x60, (byte)0x3D, (byte)9);
+            SPIMemory devParamMem = this.memoryManager.readMemory((byte)0x60, (byte)0x86, (byte)16);
+            this.calibrator = new AnalogStickCalibrator(
+                    this.side,
+                    calMem,
+                    devParamMem
+            );
         }
         JoyconManager.LOGGER.debug("\tDone!");
+    }
+
+    private void enableMemoryRead(){
+        byte[] buf = new byte[8];
+        buf[0] = 0x71;
+        buf[1] = 0x48;
+        buf[2] = 0x60;
+        buf[5] = 0xB;
+        this.device.setFeatureReport(buf[0], buf, buf.length);
     }
 
     public void addMemoryCache(SPIMemory memory){ this.memoryCaches.add(memory); }
@@ -159,7 +153,6 @@ public class Joycon {
         }
         return null;
     }
-    public List<SPIMemory> getMemoryCaches(){ return this.memoryCaches; }
 
     public void setSide(int side){ this.side = side; }
 

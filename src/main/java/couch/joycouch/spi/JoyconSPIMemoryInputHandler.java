@@ -18,7 +18,7 @@ public class JoyconSPIMemoryInputHandler implements JoyconHIDSubcommandInputHand
         synchronized (joycon.getInstance()) {
             JoyconManager.LOGGER.debug("Attempting to read memory from SPI flash memory @ {{}, {}}", String.format("0x%04x", subcommandData[0]), String.format("0x%04x", subcommandData[1]));
             try {
-                joycon.addMemoryCache(new SPIMemory(
+                joycon.getMemoryManager().storeReadMemory(new SPIMemory(
                         new byte[]{
                                 subcommandData[1],
                                 subcommandData[0]
