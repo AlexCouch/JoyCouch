@@ -46,6 +46,7 @@ public class Joycon extends Thread{
 
     private MemoryManager memoryManager = new MemoryManager(this);
     public Joycon(HidDevice device) {
+        super("JoyCon-"+device.getHidDeviceInfo().getSerialNumberString());
         this.device = device;
     }
 
@@ -54,8 +55,9 @@ public class Joycon extends Thread{
         JoyconManager.LOGGER.debug("Initializing JoyCon...");
         device.setInputReportListener(hidInputReportHandler);
         inputHandlerThread.start();
-        createStickCalibrator();
+        this.getBatteryLife();
         this.setPlayerLED();
+        createStickCalibrator();
         this.setInputReportMode();
         running = true;
         while(running){
@@ -121,7 +123,18 @@ public class Joycon extends Thread{
     public void setBatteryLife(int batteryLife){ this.batteryLife = batteryLife; }
 
     //Property getters
-    public int getBatteryLife(){ return this.batteryLife; }
+    public synchronized int getBatteryLife(){
+        try {
+            JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01)
+                    .setSubcommandID((byte) 0x50)
+                    .sendTo(this);
+            this.wait();
+        }catch(InterruptedException e){
+            JoyconManager.LOGGER.error(e.getMessage());
+            e.printStackTrace();
+        }
+        return this.batteryLife;
+    }
     public HidDevice getDevice() { return this.device; }
     public int getSide(){ return this.side; }
     public int getPlayerNumber(){ return this.playerNumber; }

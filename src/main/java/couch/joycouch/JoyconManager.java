@@ -1,9 +1,8 @@
 package couch.joycouch;
 
-import couch.joycouch.io.input.JoyconFullInputReportHandler;
+import couch.joycouch.handlers.*;
 import couch.joycouch.io.input.hid.HIDInputReportHandler;
 import couch.joycouch.joycon.Joycon;
-import couch.joycouch.spi.JoyconSPIMemoryInputHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import purejavahidapi.*;
@@ -76,8 +75,9 @@ public class JoyconManager {
                         }
                         jc.addHIDInputReportHandler(new JoyconFullInputReportHandler());
                         jc.addHIDSubcommandInputHandler(new JoyconSPIMemoryInputHandler());
+                        jc.addHIDSubcommandInputHandler(new JoyconBatteryLifeInfoHandler());
                         jc.start();
-                        LOGGER.info("Added Joy-Con: {}", device.getProductString());
+                        LOGGER.info("Added Joy-Con: {} with batter life {}", device.getProductString(), jc.getBatteryLife());
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
                     }

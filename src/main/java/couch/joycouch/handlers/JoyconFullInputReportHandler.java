@@ -1,8 +1,9 @@
-package couch.joycouch.io.input;
+package couch.joycouch.handlers;
 
 import couch.joycouch.JoyconManager;
 import couch.joycouch.analog.AnalogStickStatus;
 import couch.joycouch.buttons.ButtonStatus;
+import couch.joycouch.io.input.JoyconInputReport;
 import couch.joycouch.io.input.hid.JoyconHIDInputHandler;
 import couch.joycouch.joycon.Joycon;
 
@@ -14,7 +15,6 @@ public class JoyconFullInputReportHandler implements JoyconHIDInputHandler {
 
     @Override
     public void handleInput(Joycon source, byte[] reportData) {
-        source.setBatteryLife(((reportData[2] & 0xF0) >> 4));
         int timer = reportData[1];
         if(timer < 0) timer = -timer;
         if(timer <= JoyconManager.INSTANCE.getInputFrequency()) {
