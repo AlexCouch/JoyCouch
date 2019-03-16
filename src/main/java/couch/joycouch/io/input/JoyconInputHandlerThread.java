@@ -4,9 +4,11 @@ import couch.joycouch.io.input.delegate.HandlerData;
 import couch.joycouch.io.input.delegate.JoyconInputHandlerDelegate;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class JoyconInputHandlerThread extends Thread{
-    private Map<JoyconInputHandlerDelegate, HandlerData> hidInputHandlers = new HashMap<>();
+    private ConcurrentMap<JoyconInputHandlerDelegate, HandlerData> hidInputHandlers = new ConcurrentHashMap<>();
     private volatile boolean updating = false;
 
     public JoyconInputHandlerThread(){
@@ -22,15 +24,16 @@ public class JoyconInputHandlerThread extends Thread{
     }
 
     @Override
-    public void run(){
+    public synchronized void run(){
         while(true) {
             if(updating) continue;
-            Iterator<JoyconInputHandlerDelegate> iterator = hidInputHandlers.keySet().iterator();
+            Iterator<Map.Entry<JoyconInputHandlerDelegate, HandlerData>> iterator = hidInputHandlers.entrySet().iterator();
             while(iterator.hasNext()) {
-                JoyconInputHandlerDelegate next = iterator.next();
-                HandlerData data = hidInputHandlers.get(next);
-                next.handleDelegatedInput(data.getSource(), data.getReportID(), data.getReportData(), data.getReportLength());
-                hidInputHandlers.remove(next);
+                Map.Entry<JoyconInputHandlerDelegate, HandlerData> next = iterator.next();
+                JoyconInputHandlerDelegate delegate = next.getKey();
+                HandlerData data = next.getValue();
+                iterator.remove();
+                delegate.handleDelegatedInput(data.getSource(), data.getReportID(), data.getReportData(), data.getReportLength());
             }
         }
     }

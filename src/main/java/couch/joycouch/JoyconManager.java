@@ -33,6 +33,8 @@ public class JoyconManager {
      */
     private int frequency = 50;
 
+    private ShutdownHook shutdownHook = new ShutdownHook();
+
     private JoyconManager(){}
 
     public void setInputFrequency(int frequency){
@@ -40,6 +42,8 @@ public class JoyconManager {
     }
 
     public int getInputFrequency(){ return this.frequency; }
+
+    public ShutdownHook getShutdownHook(){ return this.shutdownHook; }
 
     /**
      * <p>
@@ -79,6 +83,7 @@ public class JoyconManager {
                 }
             }
         }
+        Runtime.getRuntime().addShutdownHook(this.shutdownHook);
     }
 
     public Joycon getLeft(){

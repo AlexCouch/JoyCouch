@@ -22,7 +22,6 @@ public class JoyconInputHandlerDelegate {
                         h.handleSubcommandInput(this.joycon, Arrays.copyOfRange(reportData, 15, 49));
                     }
                 });
-                this.joycon.notify(); //The joycon class must wait until subcommand reply has been handled, otherwise there are async's
             } else if (reportID == 0x30) { //Standard full report
 //                JoyconManager.LOGGER.debug("Handling standard full report....");
                 this.joycon.getHidInputReportHandlers().forEach(h -> {
@@ -32,6 +31,7 @@ public class JoyconInputHandlerDelegate {
                     }
                 });
             }
+            this.joycon.notify(); //Notify the Joycon class that input has been handled, if it is waiting for input responses
         }
     }
 }

@@ -85,7 +85,6 @@ public class Joycon {
         JoyconManager.LOGGER.debug("Initializing JoyCon...");
         device.setInputReportListener(hidInputReportHandler);
         inputHandlerThread.start();
-        reset();
         createStickCalibrator();
         this.setPlayerLED();
         this.setInputReportMode();
@@ -95,18 +94,12 @@ public class Joycon {
 
     public MemoryManager getMemoryManager(){ return this.memoryManager; }
 
-    private synchronized void reset(){
-        try{
-            JoyconOutputReportFactory.INSTANCE
-                    .setOutputReportID((byte)0x01)
-                    .setSubcommandID((byte)0x03)
-                    .setSubcommandArg((byte)0x3F)
-                    .sendTo(this);
-            this.wait();
-        }catch(InterruptedException e){
-            JoyconManager.LOGGER.error(e.getMessage());
-            e.printStackTrace();
-        }
+    public synchronized void reset(){
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x01)
+                .setSubcommandID((byte)0x03)
+                .setSubcommandArg((byte)0x3F)
+                .sendTo(this);
     }
 
     public AnalogStickCalibrator getStickCalibrator(){
@@ -133,25 +126,6 @@ public class Joycon {
             );
         }
         JoyconManager.LOGGER.debug("\tDone!");
-    }
-
-    private void enableMemoryRead(){
-        byte[] buf = new byte[8];
-        buf[0] = 0x71;
-        buf[1] = 0x48;
-        buf[2] = 0x60;
-        buf[5] = 0xB;
-        this.device.setFeatureReport(buf[0], buf, buf.length);
-    }
-
-    public void addMemoryCache(SPIMemory memory){ this.memoryCaches.add(memory); }
-    public SPIMemory getMemoryReader(byte[] address){
-        for(SPIMemory reader : memoryCaches){
-            if(reader.checkAddress(address)){
-                return reader;
-            }
-        }
-        return null;
     }
 
     public void setSide(int side){ this.side = side; }
@@ -215,12 +189,6 @@ public class Joycon {
                 .setOutputReportID((byte)0x10)
                 .setOutoutReportData(new Rumble(160f, 320f, 0.6f).getRumbleData())
                 .sendTo(this);
-        /*try{
-            this.wait();
-        }catch(InterruptedException e){
-            JoyconManager.LOGGER.error(e.getMessage());
-            e.printStackTrace();
-        }*/
     }
 
     public int getPlayerNumber(){
