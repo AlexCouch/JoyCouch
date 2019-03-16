@@ -32,7 +32,7 @@ public class JoyconTest {
             }
             AnalogStickStatus stickStatus = report.getAnalogStickStatus();
             AnalogStick stick = stickStatus.getAnalogStick();
-            JoyconManager.LOGGER.info("Right horizontal: {}", stick.getHorizontal());
+            JoyconManager.LOGGER.info("Right horizontal: {}\n", stick.getHorizontal());
             JoyconManager.LOGGER.info("Right vertical: {}\n\n", stick.getVertical());
         }
     }
@@ -50,7 +50,7 @@ public class JoyconTest {
             }
             AnalogStickStatus stickStatus = report.getAnalogStickStatus();
             AnalogStick stick = stickStatus.getAnalogStick();
-            JoyconManager.LOGGER.info("Right horizontal: {}", stick.getHorizontal());
+            JoyconManager.LOGGER.info("Right horizontal: {}\n", stick.getHorizontal());
             JoyconManager.LOGGER.info("Right vertical: {}\n\n", stick.getVertical());
         }
     }

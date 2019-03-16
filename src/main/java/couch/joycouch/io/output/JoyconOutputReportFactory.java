@@ -1,5 +1,6 @@
 package couch.joycouch.io.output;
 
+import couch.joycouch.JoyconManager;
 import couch.joycouch.joycon.Joycon;
 
 public class JoyconOutputReportFactory {
@@ -35,6 +36,7 @@ public class JoyconOutputReportFactory {
     }
 
     public void sendTo(Joycon joycon){
+        JoyconManager.LOGGER.debug("Sending output report with report id {} and subcommand {}", String.format("0x%04x", this.report[0]), String.format("0x%04x", this.report[10]));
         joycon.getDevice().setOutputReport(this.report[0], this.report, this.report.length);
     }
 }

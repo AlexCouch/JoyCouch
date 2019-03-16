@@ -49,26 +49,30 @@ public class JoyconManager {
      * </p>
      */
     public void init(){
+        LOGGER.info("Initializing JoyCon Manager.");
         List<HidDeviceInfo> connectedDevices = PureJavaHidApi.enumerateDevices();
         for(HidDeviceInfo device : connectedDevices){
             if(device.getProductString() != null && device.getPath() != null && device.getSerialNumberString() != null){
                 if(device.getPath().startsWith("Bluetooth") && device.getProductString().startsWith("Joy-Con")){
+                    LOGGER.debug("Found JoyCon {}", device.getProductString());
                     try {
                         HidDevice hd = PureJavaHidApi.openDevice(device);
                         Joycon jc = new Joycon(hd);
                         if(device.getProductString().endsWith("(L)")){
                             jc.setSide(2);
                             left = jc;
+                            LOGGER.debug("\tFound left JoyCon.");
                         }else if(device.getProductString().endsWith("(R)")){
                             jc.setSide(0);
                             right = jc;
+                            LOGGER.debug("\tFound left JoyCon.");
                         }else{
-                            throw new IllegalStateException("Could not recognize joycon!");
+                            LOGGER.error("Could not recognize JoyCon!");
                         }
                         jc.addHIDInputReportHandler(new JoyconFullInputReportHandler());
                         jc.addHIDSubcommandInputHandler(new JoyconSPIMemoryInputHandler());
                         jc.init();
-                        LOGGER.info("Added Joy-Con: {0}", device.getProductString());
+                        LOGGER.info("Added Joy-Con: {}", device.getProductString());
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
                     }

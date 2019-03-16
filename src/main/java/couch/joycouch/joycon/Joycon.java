@@ -1,5 +1,6 @@
 package couch.joycouch.joycon;
 
+import couch.joycouch.JoyconManager;
 import couch.joycouch.Rumble;
 import couch.joycouch.analog.AnalogStickCalibrator;
 import couch.joycouch.io.input.JoyconInputHandlerThread;
@@ -71,16 +72,17 @@ public class Joycon {
     private HIDInputReportHandler hidInputReportHandler = new HIDInputReportHandler(this);
 
     private AnalogStickCalibrator calibrator = null;
-    private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread(this);
+    private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
 
     public Joycon(HidDevice device) {
         this.device = device;
     }
 
     public void init(){
-        reset();
+        JoyconManager.LOGGER.debug("Initializing JoyCon...");
         device.setInputReportListener(hidInputReportHandler);
         inputHandlerThread.start();
+        reset();
         createStickCalibrator();
         this.setPlayerLED();
         this.setInputReportMode();
@@ -88,8 +90,18 @@ public class Joycon {
 
     public JoyconInputHandlerThread getInputHandlerThread(){ return this.inputHandlerThread; }
 
-    private void reset(){
-        JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte)0x01).setSubcommandID((byte)0x03).setSubcommandArg((byte)0x3F).sendTo(this);
+    private synchronized void reset(){
+        try{
+            JoyconOutputReportFactory.INSTANCE
+                    .setOutputReportID((byte)0x01)
+                    .setSubcommandID((byte)0x03)
+                    .setSubcommandArg((byte)0x3F)
+                    .sendTo(this);
+            this.wait();
+        }catch(InterruptedException e){
+            JoyconManager.LOGGER.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public AnalogStickCalibrator getStickCalibrator(){
@@ -97,37 +109,45 @@ public class Joycon {
     }
 
     private synchronized void createStickCalibrator(){
-        if (this.side == 0) {
-            byte[] leftAddress = new byte[]{(byte) 0x60, (byte) 0x3D};
-            byte[] leftDevParams = new byte[]{(byte) 0x60, (byte) 0x86};
-            JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(leftAddress).sendTo(this);
-            JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(leftDevParams).sendTo(this);
+        JoyconManager.LOGGER.debug("Creating analog stick calibrator...");
+        if (this.side == 0) { //Right
             try {
+                byte[] leftAddress = new byte[]{(byte) 0x60, (byte) 0x3D};
+                byte[] leftDevParams = new byte[]{(byte) 0x60, (byte) 0x86};
+                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(leftAddress).sendTo(this);
+                JoyconManager.LOGGER.debug("Waiting for calibration data...");
                 this.wait();
+                JoyconManager.LOGGER.debug("About to send output report with id {} and subcommand id {}", 0x01, 0x10);
+                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(leftDevParams).sendTo(this);
+                JoyconManager.LOGGER.debug("Waiting for device parameters data...");
+                this.wait();
+                JoyconManager.LOGGER.debug("Calibration data received...creating calibrator...");
+                this.calibrator = new AnalogStickCalibrator(
+                        this.side,
+                        this.getMemoryReader(leftAddress),
+                        this.getMemoryReader(leftDevParams)
+                );
+            } catch (InterruptedException e) {
+                JoyconManager.LOGGER.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else if (this.side == 1) { //Left
+            try {
+                byte[] rightAddress = new byte[]{(byte) 0x60, (byte) 0x46};
+                byte[] rightDevParams = new byte[]{(byte) 0x60, (byte) 0x98};
+                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(rightAddress).sendTo(this);
+                JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(rightDevParams).sendTo(this);
+                this.wait();
+                this.calibrator = new AnalogStickCalibrator(
+                        this.side,
+                        this.getMemoryReader(rightAddress),
+                        this.getMemoryReader(rightDevParams)
+                );
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            this.calibrator = new AnalogStickCalibrator(
-                    this.side,
-                    this.getMemoryReader(leftAddress),
-                    this.getMemoryReader(leftDevParams)
-            );
-        } else if (this.side == 1) {
-            byte[] rightAddress = new byte[]{(byte) 0x60, (byte) 0x46};
-            byte[] rightDevParams = new byte[]{(byte) 0x60, (byte) 0x98};
-            JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(rightAddress).sendTo(this);
-            JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01).setSubcommandID((byte) 0x10).setSubcommandArgs(rightDevParams).sendTo(this);
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            this.calibrator = new AnalogStickCalibrator(
-                    this.side,
-                    this.getMemoryReader(rightAddress),
-                    this.getMemoryReader(rightDevParams)
-            );
         }
+        JoyconManager.LOGGER.debug("\tDone!");
     }
 
     public void addMemoryCache(SPIMemory memory){ this.memoryCaches.add(memory); }
@@ -155,12 +175,18 @@ public class Joycon {
     public List<JoyconHIDSubcommandInputHandler> getHidSubcommandInputHandlers(){ return this.hidSubcommandInputHandlers; }
     public List<JoyconHIDInputHandler> getHidInputReportHandlers(){ return this.hidInputReportHandlers; }
 
-    private void setInputReportMode(){
-        JoyconOutputReportFactory.INSTANCE
-                .setOutputReportID((byte)0x01)
-                .setSubcommandID((byte)0x03)
-                .setSubcommandArg((byte)0x30)
-                .sendTo(this);
+    private synchronized void setInputReportMode(){
+        try {
+            JoyconOutputReportFactory.INSTANCE
+                    .setOutputReportID((byte) 0x01)
+                    .setSubcommandID((byte) 0x03)
+                    .setSubcommandArg((byte) 0x30)
+                    .sendTo(this);
+            this.wait();
+        }catch(InterruptedException e){
+            JoyconManager.LOGGER.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public boolean isCombined(){ return this.isCombined; }
@@ -175,32 +201,50 @@ public class Joycon {
         this.device.close();
     }
 
-    public void enableRumble() {
-        JoyconOutputReportFactory.INSTANCE
-                .setOutputReportID((byte)0x01)
-                .setSubcommandID((byte)0x48)
-                .setSubcommandArg((byte)0x1)
-                .sendTo(this);
-        this.rumbleOn = true;
+    public synchronized void enableRumble() {
+        try{
+            JoyconOutputReportFactory.INSTANCE
+                    .setOutputReportID((byte)0x01)
+                    .setSubcommandID((byte)0x48)
+                    .setSubcommandArg((byte)0x1)
+                    .sendTo(this);
+            this.wait();
+            this.rumbleOn = true; //Don't set this to true until the reply input report comes back
+        }catch(InterruptedException e){
+            JoyconManager.LOGGER.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    public void rumbleJoycon() {
+    public void rumbleJoycon() { //Does the rumble command have a response?
         if(!rumbleOn) enableRumble();
         JoyconOutputReportFactory.INSTANCE
                 .setOutputReportID((byte)0x10)
                 .setOutoutReportData(new Rumble(160f, 320f, 0.6f).getRumbleData())
                 .sendTo(this);
+        /*try{
+            this.wait();
+        }catch(InterruptedException e){
+            JoyconManager.LOGGER.error(e.getMessage());
+            e.printStackTrace();
+        }*/
     }
 
     public int getPlayerNumber(){
         return this.playerNumber;
     }
 
-    public void setPlayerLED() {
-        JoyconOutputReportFactory.INSTANCE
-                .setOutputReportID((byte)0x01)
-                .setSubcommandID((byte)0x30)
-                .setSubcommandArg((byte)0x1)
-                .sendTo(this);
+    public synchronized void setPlayerLED() {
+        try {
+            JoyconOutputReportFactory.INSTANCE
+                    .setOutputReportID((byte) 0x01)
+                    .setSubcommandID((byte) 0x30)
+                    .setSubcommandArg((byte) 0x1)
+                    .sendTo(this);
+            this.wait();
+        }catch(InterruptedException e){
+            JoyconManager.LOGGER.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

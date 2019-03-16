@@ -1,31 +1,38 @@
 package couch.joycouch.io.input;
 
-import couch.joycouch.joycon.Joycon;
-import purejavahidapi.HidDevice;
+import couch.joycouch.JoyconManager;
+import couch.joycouch.io.input.delegate.HandlerData;
+import couch.joycouch.io.input.delegate.JoyconInputHandlerDelegate;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class JoyconInputHandlerThread extends Thread{
-    private Joycon joycon;
+    private Map<JoyconInputHandlerDelegate, HandlerData> hidInputHandlers = new HashMap<>();
+    private boolean updating = false;
 
-    public JoyconInputHandlerThread(Joycon joycon){
+    public JoyconInputHandlerThread(){
         super("Input-Handler-Thread");
-        this.joycon = joycon;
     }
 
-    public void handleDelegatedInput(HidDevice source, byte reportID, byte[] reportData, int reportLength){
-        if(reportID == 0x21){ //Subcommand
-            this.joycon.getHidSubcommandInputHandlers().forEach(h -> {
-                if(h.getSubcommandID() == reportData[14]){
-                    h.handleSubcommandInput(this.joycon, Arrays.copyOfRange(reportData, 15, 49));
-                }
-            });
-        }else if(reportID == 0x30){ //Standard full report
-            this.joycon.getHidInputReportHandlers().forEach(h -> {
-                if(h.getReportID() == reportID){
-                    h.handleInput(this.joycon, reportData);
-                }
-            });
+    public void addHIDInputHandler(JoyconInputHandlerDelegate handler, HandlerData data){
+        updating = true;
+        if(handler == null || data == null) throw new NullPointerException(String.format("%s cannot be null", handler == null ? "Handler delegate" : "Handler data"));
+        JoyconManager.LOGGER.debug("Adding handler delegate with report id {} and subcommand id {}", String.format("0x%04x", data.getReportID()), String.format("0x%04x", data.getReportData()[14]));
+        this.hidInputHandlers.put(handler, data);
+        updating = false;
+    }
+
+    @Override
+    public void run(){
+        while(true) {
+            if(updating) continue;
+            Iterator<JoyconInputHandlerDelegate> iterator = hidInputHandlers.keySet().iterator();
+            while(iterator.hasNext()) {
+                JoyconInputHandlerDelegate next = iterator.next();
+                HandlerData data = hidInputHandlers.get(next);
+                next.handleDelegatedInput(data.getSource(), data.getReportID(), data.getReportData(), data.getReportLength());
+                hidInputHandlers.remove(next);
+            }
         }
     }
 }

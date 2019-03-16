@@ -7,7 +7,7 @@
           "type": "Console",
           "name": "STDOUT",
           "PatternLayout": {
-            "pattern": "[%t (%c{1}) @ %d{HH:mm:ss,SSS}]: %level{WARN=Warning, DEBUG=Debug, ERROR=Error, INFO=Info, TRACE=Trace} - %m"
+            "pattern": "[%t (%C{1}:%M) @ %d{HH:mm:ss,SSS}]: %level{WARN=Warning, DEBUG=Debug, ERROR=Error, INFO=Info, TRACE=Trace} - %m%n"
           }
         }
       ]
