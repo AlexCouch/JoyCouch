@@ -14,73 +14,37 @@ import purejavahidapi.HidDevice;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * This class is a wrapper that contains all the information for working with a JoyCon. It includes the HidDevice,<br>
- * the side (left, right, or shared), methods for sending and receiving data which are really handled by the input report
- * handlers. This JoyCon class contains a list of {@link JoyconInputReportHandler JoyconInputReportHandlers} which are all<br>
- * invoked by the {@link HIDInputReportHandler JoyCon's HID input report handler}.
- */
 public class Joycon extends Thread{
-    public synchronized Joycon getInstance(){
-        return this;
-    }
 
-    /**
-     * The HID device allowing communication with the JoyCons. This is how input and io reports are received/sent.
+
+    /*
+                        Properties
      */
     private HidDevice device;
-    private boolean isCombined = false;
 
-    /**
-     * This is an offset for the input reports to get the right button status data.
-     * <br><br>
-     * {@code
-     *  reportData[3 + side]
-     * }
-     *
-     * 0 = right
-     * 1 = shared
-     * 2 = left
-     */
     private int side;
-
-    /**
-     * Just a check for whether rumble is enabled. Not guaranteed to actually represent rumble status.
-     */
     protected boolean rumbleOn = false;
+    private int batteryLife = -1;
+    protected int playerNumber;
+    private AnalogStickCalibrator calibrator = null;
+    private boolean running = false;
 
-    /**
-     * A list of all input report handlers.
+    /*
+                        Handlers
      */
     private List<JoyconInputReportHandler> inputReportHandlers = new ArrayList<>();
+
     private List<JoyconHIDInputHandler> hidInputReportHandlers = new ArrayList<>();
     private List<JoyconHIDSubcommandInputHandler> hidSubcommandInputHandlers = new ArrayList<>();
     private Queue<ActionRequest> joyconActonRequest = new ConcurrentLinkedQueue<>();
-
-    public interface ActionRequest{
-
-        void requestAction(Joycon joycon);
-    }
-    /**
-     * An integer representing the battery life of this JoyCon.
-     *
-     * 8 - Full
-     * 6 - Medium
-     * 4 - Low
-     * 2 - Critical
-     * 0 - Empty
-     */
-    private int batteryLife = -1;
-
-    protected int playerNumber;
-
     private HIDInputReportHandler hidInputReportHandler = new HIDInputReportHandler(this);
-    private AnalogStickCalibrator calibrator = null;
 
+    /*
+                        Misc
+     */
     private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
-    private MemoryManager memoryManager = new MemoryManager(this);
-    private boolean running = false;
 
+    private MemoryManager memoryManager = new MemoryManager(this);
     public Joycon(HidDevice device) {
         this.device = device;
     }
@@ -102,14 +66,14 @@ public class Joycon extends Thread{
         }
     }
 
+
+    /*
+                            Startup/Shutdown
+     */
     public void shutdown(){
         this.reset();
         running = false;
     }
-
-    public JoyconInputHandlerThread getInputHandlerThread(){ return this.inputHandlerThread; }
-
-    public MemoryManager getMemoryManager(){ return this.memoryManager; }
 
     public synchronized void reset(){
         JoyconOutputReportFactory.INSTANCE
@@ -117,10 +81,6 @@ public class Joycon extends Thread{
                 .setSubcommandID((byte)0x03)
                 .setSubcommandArg((byte)0x3F)
                 .sendTo(this);
-    }
-
-    public AnalogStickCalibrator getStickCalibrator(){
-        return this.calibrator;
     }
 
     private synchronized void createStickCalibrator(){
@@ -145,19 +105,43 @@ public class Joycon extends Thread{
         JoyconManager.LOGGER.debug("\tDone!");
     }
 
-    public void setSide(int side){ this.side = side; }
 
-    public void setBatteryLife(int batteryLife){ this.batteryLife = batteryLife; }
 
-    public int getBatteryLife(){ return this.batteryLife; }
+    /*
+                            Getters/Setters/Adders
+     */
 
+    //Handler adders
     public void addInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandlers.add(handler); }
     public void addHIDInputReportHandler(JoyconHIDInputHandler inputHandler){ this.hidInputReportHandlers.add(inputHandler); }
     public void addHIDSubcommandInputHandler(JoyconHIDSubcommandInputHandler inputHandler){ this.hidSubcommandInputHandlers.add(inputHandler); }
 
+    //Property setters
+    public void setSide(int side){ this.side = side; }
+    public void setBatteryLife(int batteryLife){ this.batteryLife = batteryLife; }
+
+    //Property getters
+    public int getBatteryLife(){ return this.batteryLife; }
+    public HidDevice getDevice() { return this.device; }
+    public int getSide(){ return this.side; }
+    public int getPlayerNumber(){ return this.playerNumber; }
+    public AnalogStickCalibrator getStickCalibrator(){ return this.calibrator; }
+    public JoyconInputHandlerThread getInputHandlerThread(){ return this.inputHandlerThread; }
+
+    //Handler getters
     public List<JoyconInputReportHandler> getInputReportHandlers(){ return this.inputReportHandlers; }
     public List<JoyconHIDSubcommandInputHandler> getHidSubcommandInputHandlers(){ return this.hidSubcommandInputHandlers; }
     public List<JoyconHIDInputHandler> getHidInputReportHandlers(){ return this.hidInputReportHandlers; }
+
+    //Misc
+    public MemoryManager getMemoryManager(){ return this.memoryManager; }
+    public synchronized Joycon getInstance(){
+        return this;
+    }
+
+    /*
+                        Actions
+     */
 
     public void requestAction(ActionRequest actionRequest){
         this.joyconActonRequest.add(actionRequest);
@@ -175,18 +159,6 @@ public class Joycon extends Thread{
             JoyconManager.LOGGER.error(e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    public boolean isCombined(){ return this.isCombined; }
-
-    public HidDevice getDevice() {
-        return this.device;
-    }
-
-    public int getSide(){ return this.side; }
-
-    public void detach() {
-        this.device.close();
     }
 
     public synchronized void enableRumble() {
@@ -212,10 +184,6 @@ public class Joycon extends Thread{
                 .sendTo(this);
     }
 
-    public int getPlayerNumber(){
-        return this.playerNumber;
-    }
-
     public synchronized void setPlayerLED() {
         try {
             JoyconOutputReportFactory.INSTANCE
@@ -228,5 +196,9 @@ public class Joycon extends Thread{
             JoyconManager.LOGGER.error(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public interface ActionRequest{
+        void requestAction(Joycon joycon);
     }
 }
