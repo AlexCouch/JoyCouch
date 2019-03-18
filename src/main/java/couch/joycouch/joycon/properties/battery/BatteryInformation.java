@@ -16,7 +16,7 @@ public class BatteryInformation {
         int b = (data[0] & 0xFF) | (data[1] << 8);
         int voltage = (int)(b * 2.5F);
         BatteryStatus status = BatteryStatus.getBatteryStatusFrom(voltage);
-        float percentage = voltage / 4200F;
+        float percentage = ((voltage - 3300F)*100) / (4200F - 3300F);
         return new BatteryInformation(status, voltage, percentage);
     }
 
