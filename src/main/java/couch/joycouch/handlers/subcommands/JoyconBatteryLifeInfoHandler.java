@@ -1,4 +1,4 @@
-package couch.joycouch.handlers;
+package couch.joycouch.handlers.subcommands;
 
 import couch.joycouch.io.input.hid.JoyconHIDSubcommandInputHandler;
 import couch.joycouch.joycon.Joycon;

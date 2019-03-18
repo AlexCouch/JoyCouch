@@ -3,10 +3,13 @@ package couch.joycouch.io.output;
 import couch.joycouch.JoyconManager;
 import couch.joycouch.joycon.Joycon;
 
+import java.util.Arrays;
+
 public class JoyconOutputReportFactory {
     public static final JoyconOutputReportFactory INSTANCE = new JoyconOutputReportFactory();
 
     private byte[] report = new byte[50];
+    private byte[] dummyReport = new byte[50];
 
     private JoyconOutputReportFactory(){}
 
@@ -36,7 +39,13 @@ public class JoyconOutputReportFactory {
     }
 
     public void sendTo(Joycon joycon){
-        JoyconManager.LOGGER.debug("Sending output report with report id {} and subcommand {}", String.format("0x%04x", this.report[0]), String.format("0x%04x", this.report[10]));
-        joycon.getDevice().setOutputReport(this.report[0], this.report, this.report.length);
+        JoyconManager.LOGGER.debug("Sending output report with report id {} and subcommand {} with args {{}}",
+                String.format("0x%04x", this.report[0]),
+                String.format("0x%04x", this.report[10]),
+                Arrays.toString(Arrays.copyOfRange(this.report, 11, this.report.length - 1)));
+        int resp = joycon.getDevice().setOutputReport(this.report[0], this.report, this.report.length);
+        JoyconManager.LOGGER.debug("Output report response: {}", resp);
+        this.report = new byte[50];
+        joycon.getDevice().setOutputReport((byte)0x0, this.report, this.report.length);
     }
 }

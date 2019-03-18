@@ -1,4 +1,4 @@
-package couch.joycouch.handlers;
+package couch.joycouch.handlers.subcommands;
 
 import couch.joycouch.JoyconManager;
 import couch.joycouch.joycon.Joycon;

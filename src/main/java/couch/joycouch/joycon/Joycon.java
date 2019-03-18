@@ -1,6 +1,5 @@
 package couch.joycouch.joycon;
 
-import couch.joycouch.JoyconManager;
 import couch.joycouch.Rumble;
 import couch.joycouch.analog.AnalogStickCalibrator;
 import couch.joycouch.io.input.JoyconInputHandlerThread;
@@ -42,7 +41,7 @@ public class Joycon extends Thread{
     /*
                         Misc
      */
-    private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
+    private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread(this);
     private ActionRequestProcessorThread actionRequestProcessor = new ActionRequestProcessorThread(this);
     private final JoyconInitializer initializer = new JoyconInitializer(this);
 
@@ -70,10 +69,10 @@ public class Joycon extends Thread{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        this.actionRequestProcessor.requestAction(Joycon::setPlayerLED);
+        this.actionRequestProcessor.requestAction(Joycon::setInputReportMode);
         device.setInputReportListener(hidInputReportHandler);
         inputHandlerThread.start();
-        this.requestAction(Joycon::setPlayerLED);
-        this.requestAction(Joycon::setInputReportMode);
     }
 
     public void shutdown(){
@@ -87,6 +86,11 @@ public class Joycon extends Thread{
                 .setOutputReportID((byte)0x01)
                 .setSubcommandID((byte)0x03)
                 .setSubcommandArg((byte)0x3F)
+                .sendTo(this);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x01)
+                .setSubcommandID((byte)0x06)
+                .setSubcommandArg((byte)0x1)
                 .sendTo(this);
     }
 
@@ -140,32 +144,20 @@ public class Joycon extends Thread{
         this.actionRequestProcessor.requestAction(actionRequest);
     }
 
-    private synchronized void setInputReportMode(){
+    private void setInputReportMode(){
         JoyconOutputReportFactory.INSTANCE
                 .setOutputReportID((byte) 0x01)
                 .setSubcommandID((byte) 0x03)
                 .setSubcommandArg((byte) 0x30)
                 .sendTo(this);
-        try {
-            this.wait();
-        } catch (InterruptedException e) {
-            JoyconManager.LOGGER.error(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
-    public synchronized void enableRumble() {
+    public void enableRumble() {
         JoyconOutputReportFactory.INSTANCE
                 .setOutputReportID((byte)0x01)
                 .setSubcommandID((byte)0x48)
                 .setSubcommandArg((byte)0x1)
                 .sendTo(this);
-        /*try {
-            this.wait();
-        } catch (InterruptedException e) {
-            JoyconManager.LOGGER.error(e.getMessage());
-            e.printStackTrace();
-        }*/
         this.rumbleOn = true; //Don't set this to true until the reply input report comes back
     }
 
@@ -181,14 +173,8 @@ public class Joycon extends Thread{
         JoyconOutputReportFactory.INSTANCE
                 .setOutputReportID((byte) 0x01)
                 .setSubcommandID((byte) 0x30)
-                .setSubcommandArg((byte) 0x1)
+                .setSubcommandArgs(new byte[]{(byte)0x1})
                 .sendTo(this);
-        /*try {
-            this.wait();
-        } catch (InterruptedException e) {
-            JoyconManager.LOGGER.error(e.getMessage());
-            e.printStackTrace();
-        }*/
     }
 
     public interface ActionRequest{

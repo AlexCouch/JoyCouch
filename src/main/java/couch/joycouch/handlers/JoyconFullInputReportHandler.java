@@ -17,7 +17,7 @@ public class JoyconFullInputReportHandler implements JoyconHIDInputHandler {
     public void handleInput(Joycon source, byte[] reportData) {
         int timer = reportData[1];
         if(timer < 0) timer = -timer;
-        if(timer <= JoyconManager.INSTANCE.getInputFrequency()) {
+        if(timer % JoyconManager.INSTANCE.getInputFrequency() == 0) {
             ButtonStatus buttonStatus = new ButtonStatus(reportData[3], reportData[4], reportData[5]);
             byte[] stickData = new byte[3];
             if(source.getSide() == 2){

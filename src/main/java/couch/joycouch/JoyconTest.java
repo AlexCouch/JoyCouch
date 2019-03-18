@@ -9,15 +9,17 @@ import couch.joycouch.io.input.JoyconInputReportHandler;
 import couch.joycouch.joycon.Joycon;
 
 public class JoyconTest {
-    public static void main(String[] args){
-        JoyconManager.INSTANCE.setInputFrequency(100);
+    public static void main(String[] args) throws InterruptedException {
+        JoyconManager.INSTANCE.setInputFrequency(10);
+        JoyconManager.INSTANCE.start();
+        JoyconManager.INSTANCE.join();
         if(JoyconManager.INSTANCE.getLeft() != null){
             JoyconManager.INSTANCE.getLeft().addInputReportHandler(new LeftJoyconButtonHandler());
         }
         if(JoyconManager.INSTANCE.getRight() != null){
             JoyconManager.INSTANCE.getRight().addInputReportHandler(new RightJoyconButtonHandler());
         }
-        JoyconManager.INSTANCE.start(); //Start the joycon manager thread after adding settings
+//        JoyconManager.INSTANCE.start(); //Start the joycon manager thread after adding settings
     }
 
     private static class RightJoyconButtonHandler implements JoyconInputReportHandler{

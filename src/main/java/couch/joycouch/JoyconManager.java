@@ -1,6 +1,7 @@
 package couch.joycouch;
 
 import couch.joycouch.handlers.*;
+import couch.joycouch.handlers.subcommands.*;
 import couch.joycouch.joycon.Joycon;
 import couch.joycouch.joycon.properties.battery.BatteryInformation;
 import org.apache.logging.log4j.LogManager;
@@ -30,6 +31,15 @@ public class JoyconManager extends Thread{
     public int getInputFrequency(){ return this.frequency; }
 
     public ShutdownHook getShutdownHook(){ return this.shutdownHook; }
+
+    /*public void start(){
+        super.start();
+        try {
+            this.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }*/
 
     public synchronized void run(){
         LOGGER.info("Initializing JoyCon Manager.");
