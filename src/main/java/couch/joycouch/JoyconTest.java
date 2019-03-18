@@ -10,7 +10,6 @@ import couch.joycouch.joycon.Joycon;
 
 public class JoyconTest {
     public static void main(String[] args){
-        JoyconManager.INSTANCE.init();
         JoyconManager.INSTANCE.setInputFrequency(100);
         if(JoyconManager.INSTANCE.getLeft() != null){
             JoyconManager.INSTANCE.getLeft().addInputReportHandler(new LeftJoyconButtonHandler());
@@ -18,6 +17,7 @@ public class JoyconTest {
         if(JoyconManager.INSTANCE.getRight() != null){
             JoyconManager.INSTANCE.getRight().addInputReportHandler(new RightJoyconButtonHandler());
         }
+        JoyconManager.INSTANCE.start(); //Start the joycon manager thread after adding settings
     }
 
     private static class RightJoyconButtonHandler implements JoyconInputReportHandler{

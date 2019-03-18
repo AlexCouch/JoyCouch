@@ -12,6 +12,14 @@ public class BatteryInformation {
         this.batteryPercentage = batteryPercentage;
     }
 
+    public static BatteryInformation getBatteryInformation(byte[] data){
+        int b = (data[0] & 0xFF) | (data[1] << 8);
+        int voltage = (int)(b * 2.5F);
+        BatteryStatus status = BatteryStatus.getBatteryStatusFrom(voltage);
+        float percentage = voltage / 4200F;
+        return new BatteryInformation(status, voltage, percentage);
+    }
+
     public BatteryStatus getBatteryStatus(){ return this.batteryStatus; }
     public int getBatteryVoltage(){ return this.batteryVoltage; }
     public float getBatteryPercentage(){ return this.batteryPercentage; }

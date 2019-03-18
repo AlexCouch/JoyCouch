@@ -1,7 +1,6 @@
 package couch.joycouch;
 
 import couch.joycouch.handlers.*;
-import couch.joycouch.io.input.hid.HIDInputReportHandler;
 import couch.joycouch.joycon.Joycon;
 import couch.joycouch.joycon.properties.battery.BatteryInformation;
 import org.apache.logging.log4j.LogManager;
@@ -10,32 +9,19 @@ import purejavahidapi.*;
 
 import java.util.List;
 
-/**
- * A simple Joycon Manager. This simply just manages all the joy-cons connected. This is where you would do general
- * operations on your joy-cons such as pairing and unpairing, or even sending unsafe data, aka your own custom packets
- * of data. WIP
- */
-public class JoyconManager {
+public class JoyconManager extends Thread{
     public static final Logger LOGGER = LogManager.getLogger();
-
     public static final JoyconManager INSTANCE = new JoyconManager();
 
-    /**
-     * The left and right JoyCons; either of these can be null, just know that accessing these while null will result
-     * in a failure. There is no exception handling at the moment, so you must do that yourself.
-     */
     private Joycon left, right;
 
-    /**
-     * This field is used to decide how long to wait until the next input report is accepted.
-     *
-     * @see HIDInputReportHandler#onInputReport(HidDevice, byte, byte[], int) HIDInputReportHandler#onInputReport
-     */
     private int frequency = 50;
 
     private ShutdownHook shutdownHook = new ShutdownHook();
 
-    private JoyconManager(){}
+    private JoyconManager(){
+        super("Joycon-Manager");
+    }
 
     public void setInputFrequency(int frequency){
         this.frequency = frequency;
@@ -45,14 +31,7 @@ public class JoyconManager {
 
     public ShutdownHook getShutdownHook(){ return this.shutdownHook; }
 
-    /**
-     * <p>
-     * This initializes the JoyCon to be connected. It scans for both a left and right JoyCon to be connected.
-     * <br><br>
-     * This only supports one left and one right; however it is possible to have only one of them at a time.
-     * </p>
-     */
-    public void init(){
+    public synchronized void run(){
         LOGGER.info("Initializing JoyCon Manager.");
         Runtime.getRuntime().addShutdownHook(this.shutdownHook);
         List<HidDeviceInfo> connectedDevices = PureJavaHidApi.enumerateDevices();
@@ -63,6 +42,7 @@ public class JoyconManager {
                     try {
                         HidDevice hd = PureJavaHidApi.openDevice(device);
                         Joycon jc = new Joycon(hd);
+                        jc.join();
                         if(device.getProductString().endsWith("(L)")){
                             jc.setSide(2);
                             left = jc;
@@ -70,17 +50,17 @@ public class JoyconManager {
                         }else if(device.getProductString().endsWith("(R)")){
                             jc.setSide(0);
                             right = jc;
-                            LOGGER.debug("\tFound left JoyCon.");
+                            LOGGER.debug("\tFound right JoyCon.");
                         }else{
                             LOGGER.error("Could not recognize JoyCon!");
                         }
                         jc.addHIDInputReportHandler(new JoyconFullInputReportHandler());
                         jc.addHIDSubcommandInputHandler(new JoyconSPIMemoryInputHandler());
                         jc.addHIDSubcommandInputHandler(new JoyconBatteryLifeInfoHandler());
-                        jc.start();
-                        BatteryInformation batteryInformation = jc.getBatteryLife();
+//                        jc.start();
+                        BatteryInformation batteryInformation = jc.getBatteryInfo();
                         LOGGER.info("Added Joy-Con: {} with battery status {}, voltage {}, and percentage {}", device.getProductString(), batteryInformation.getBatteryStatus(), batteryInformation.getBatteryVoltage(), batteryInformation.getBatteryPercentage());
-                    } catch (java.io.IOException e) {
+                    } catch (java.io.IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
                 }

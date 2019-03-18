@@ -3,39 +3,35 @@ package couch.joycouch.joycon.properties.spi;
 import couch.joycouch.io.output.JoyconOutputReportFactory;
 import couch.joycouch.joycon.Joycon;
 
+import java.util.List;
+
 public class MemoryManager {
     private final Joycon joycon;
 
-    private SPIMemory readMemory;
+    private List<SPIMemory> readMemory;
 
     public MemoryManager(Joycon joycon){
         this.joycon = joycon;
     }
 
-    public void storeReadMemory(SPIMemory memory){ this.readMemory = memory; }
+    public void storeReadMemory(SPIMemory memory){ this.readMemory.add(memory); }
 
-    private SPIMemory getReadMemory(){
-        SPIMemory lmem = this.readMemory; //Locally cached memory object
-        readMemory = null; //Deallocate
-        return lmem; //return locally cached memory object
+    public SPIMemory getReadMemory(byte[] address){
+        for(SPIMemory mem : readMemory){
+            if(mem.checkAddress(address)){
+                return mem;
+            }
+        }
+        return null;
     }
 
-    public SPIMemory readMemory(byte subsect, byte address, byte size){
-        synchronized (this.joycon) {
-            try {
-                setupMemoryRead(subsect, address, size);
-                JoyconOutputReportFactory.INSTANCE
-                        .setOutputReportID((byte) 0x1)
-                        .setSubcommandID((byte) 0x10)
-                        .setSubcommandArgs(new byte[]{address, subsect, 0x0, 0x0, size})
-                        .sendTo(this.joycon);
-                this.joycon.wait(); //Memory manager should be on the same thread; if not, then I dun goofed
-                return this.getReadMemory();
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-            return null;
-        }
+    public synchronized void readMemory(byte subsect, byte address, byte size){
+        setupMemoryRead(subsect, address, size);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte) 0x1)
+                .setSubcommandID((byte) 0x10)
+                .setSubcommandArgs(new byte[]{address, subsect, 0x0, 0x0, size})
+                .sendTo(this.joycon);
     }
 
     private void setupMemoryRead(byte subsect, byte address, byte size){

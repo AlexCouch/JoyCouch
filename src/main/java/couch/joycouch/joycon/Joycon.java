@@ -7,16 +7,16 @@ import couch.joycouch.io.input.JoyconInputHandlerThread;
 import couch.joycouch.io.input.JoyconInputReportHandler;
 import couch.joycouch.io.input.hid.*;
 import couch.joycouch.io.output.JoyconOutputReportFactory;
+import couch.joycouch.joycon.action.ActionRequestProcessorThread;
+import couch.joycouch.joycon.init.JoyconInitializer;
 import couch.joycouch.joycon.properties.battery.BatteryInformation;
 import couch.joycouch.joycon.properties.spi.MemoryManager;
-import couch.joycouch.joycon.properties.spi.SPIMemory;
 import purejavahidapi.HidDevice;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Joycon extends Thread{
-
 
     /*
                         Properties
@@ -28,7 +28,7 @@ public class Joycon extends Thread{
     private BatteryInformation batteryInfo;
     protected int playerNumber;
     private AnalogStickCalibrator calibrator = null;
-    private boolean running = false;
+    private boolean running = false, initializing = false;
 
     /*
                         Handlers
@@ -37,48 +37,52 @@ public class Joycon extends Thread{
 
     private List<JoyconHIDInputHandler> hidInputReportHandlers = new ArrayList<>();
     private List<JoyconHIDSubcommandInputHandler> hidSubcommandInputHandlers = new ArrayList<>();
-    private Queue<ActionRequest> joyconActonRequest = new ConcurrentLinkedQueue<>();
     private HIDInputReportHandler hidInputReportHandler = new HIDInputReportHandler(this);
 
     /*
                         Misc
      */
     private JoyconInputHandlerThread inputHandlerThread = new JoyconInputHandlerThread();
+    private ActionRequestProcessorThread actionRequestProcessor = new ActionRequestProcessorThread(this);
+    private final JoyconInitializer initializer = new JoyconInitializer(this);
 
     private MemoryManager memoryManager = new MemoryManager(this);
-    public Joycon(HidDevice device) {
-        super("JoyCon-"+device.getHidDeviceInfo().getSerialNumberString());
-        this.device = device;
-    }
 
-    @Override
-    public void run() {
-        JoyconManager.LOGGER.debug("Initializing JoyCon...");
-        device.setInputReportListener(hidInputReportHandler);
-        inputHandlerThread.start();
-        this.getBatteryLife();
-        this.setPlayerLED();
-        createStickCalibrator();
-        this.setInputReportMode();
-        running = true;
-        while(running){
-            ActionRequest request = this.joyconActonRequest.poll();
-            if(request != null){
-                request.requestAction(this);
-            }
-        }
+    public Joycon(HidDevice device) {
+        super("JoyCon-" + device.getHidDeviceInfo().getSerialNumberString());
+        this.device = device;
+        this.running = true;
+        this.start();
+        this.actionRequestProcessor.start();
     }
 
 
     /*
                         Startup/Shutdown
      */
+
+    @Override
+    public synchronized void run(){
+        this.device.setInputReportListener(initializer);
+        initializer.start();
+        try {
+            initializer.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        device.setInputReportListener(hidInputReportHandler);
+        inputHandlerThread.start();
+        this.requestAction(Joycon::setPlayerLED);
+        this.requestAction(Joycon::setInputReportMode);
+    }
+
     public void shutdown(){
         this.reset();
+        this.actionRequestProcessor.shutdown();
         running = false;
     }
 
-    public synchronized void reset(){
+    public void reset(){
         JoyconOutputReportFactory.INSTANCE
                 .setOutputReportID((byte)0x01)
                 .setSubcommandID((byte)0x03)
@@ -86,55 +90,30 @@ public class Joycon extends Thread{
                 .sendTo(this);
     }
 
-    private synchronized void createStickCalibrator(){
-        JoyconManager.LOGGER.debug("Creating analog stick calibrator...");
-        if (this.side == 0) { //Right
-            SPIMemory calMem = this.memoryManager.readMemory((byte)0x60, (byte)0x46, (byte)9);
-            SPIMemory devParamMem = this.memoryManager.readMemory((byte)0x60, (byte)0x98, (byte)16);
-            this.calibrator = new AnalogStickCalibrator(
-                    this.side,
-                    calMem,
-                    devParamMem
-            );
-        } else if (this.side == 1) { //Left
-            SPIMemory calMem = this.memoryManager.readMemory((byte)0x60, (byte)0x3D, (byte)9);
-            SPIMemory devParamMem = this.memoryManager.readMemory((byte)0x60, (byte)0x86, (byte)16);
-            this.calibrator = new AnalogStickCalibrator(
-                    this.side,
-                    calMem,
-                    devParamMem
-            );
-        }
-        JoyconManager.LOGGER.debug("\tDone!");
-    }
-
-
-
     /*
                             Getters/Setters/Adders
      */
 
-    //Handler adders
+    //Handler adders/removers
     public void addInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandlers.add(handler); }
+    public void removeInputReportHandler(JoyconInputReportHandler handler){ this.inputReportHandlers.remove(handler); }
     public void addHIDInputReportHandler(JoyconHIDInputHandler inputHandler){ this.hidInputReportHandlers.add(inputHandler); }
+    public void removeHIDInputReportHandler(JoyconHIDInputHandler handler){ this.hidInputReportHandlers.remove(handler); }
     public void addHIDSubcommandInputHandler(JoyconHIDSubcommandInputHandler inputHandler){ this.hidSubcommandInputHandlers.add(inputHandler); }
+    public void removeHIDSubcommandInputReportHandler(JoyconHIDSubcommandInputHandler handler){ this.hidSubcommandInputHandlers.remove(handler); }
 
     //Property setters
     public void setSide(int side){ this.side = side; }
     public void setBatteryInfo(BatteryInformation batteryInfo){ this.batteryInfo = batteryInfo; }
+    public void setCalibrator(AnalogStickCalibrator calibrator){ this.calibrator = calibrator; }
 
     //Property getters
-    public synchronized BatteryInformation getBatteryLife(){
-        try {
-            JoyconOutputReportFactory.INSTANCE.setOutputReportID((byte) 0x01)
-                    .setSubcommandID((byte) 0x50)
-                    .sendTo(this);
-            this.wait();
-        }catch(InterruptedException e){
-            JoyconManager.LOGGER.error(e.getMessage());
-            e.printStackTrace();
-        }
-        return this.batteryInfo;
+    public boolean isRunning(){ return this.running; }
+
+    public BatteryInformation getBatteryInfo(){ return this.batteryInfo; }
+
+    public void updateBatteryInformation(){
+
     }
     public HidDevice getDevice() { return this.device; }
     public int getSide(){ return this.side; }
@@ -158,36 +137,36 @@ public class Joycon extends Thread{
      */
 
     public void requestAction(ActionRequest actionRequest){
-        this.joyconActonRequest.add(actionRequest);
+        this.actionRequestProcessor.requestAction(actionRequest);
     }
 
     private synchronized void setInputReportMode(){
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte) 0x01)
+                .setSubcommandID((byte) 0x03)
+                .setSubcommandArg((byte) 0x30)
+                .sendTo(this);
         try {
-            JoyconOutputReportFactory.INSTANCE
-                    .setOutputReportID((byte) 0x01)
-                    .setSubcommandID((byte) 0x03)
-                    .setSubcommandArg((byte) 0x30)
-                    .sendTo(this);
             this.wait();
-        }catch(InterruptedException e){
+        } catch (InterruptedException e) {
             JoyconManager.LOGGER.error(e.getMessage());
             e.printStackTrace();
         }
     }
 
     public synchronized void enableRumble() {
-        try{
-            JoyconOutputReportFactory.INSTANCE
-                    .setOutputReportID((byte)0x01)
-                    .setSubcommandID((byte)0x48)
-                    .setSubcommandArg((byte)0x1)
-                    .sendTo(this);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte)0x01)
+                .setSubcommandID((byte)0x48)
+                .setSubcommandArg((byte)0x1)
+                .sendTo(this);
+        /*try {
             this.wait();
-            this.rumbleOn = true; //Don't set this to true until the reply input report comes back
-        }catch(InterruptedException e){
+        } catch (InterruptedException e) {
             JoyconManager.LOGGER.error(e.getMessage());
             e.printStackTrace();
-        }
+        }*/
+        this.rumbleOn = true; //Don't set this to true until the reply input report comes back
     }
 
     public void rumbleJoycon() { //Does the rumble command have a response?
@@ -199,17 +178,17 @@ public class Joycon extends Thread{
     }
 
     public synchronized void setPlayerLED() {
-        try {
-            JoyconOutputReportFactory.INSTANCE
-                    .setOutputReportID((byte) 0x01)
-                    .setSubcommandID((byte) 0x30)
-                    .setSubcommandArg((byte) 0x1)
-                    .sendTo(this);
+        JoyconOutputReportFactory.INSTANCE
+                .setOutputReportID((byte) 0x01)
+                .setSubcommandID((byte) 0x30)
+                .setSubcommandArg((byte) 0x1)
+                .sendTo(this);
+        /*try {
             this.wait();
-        }catch(InterruptedException e){
+        } catch (InterruptedException e) {
             JoyconManager.LOGGER.error(e.getMessage());
             e.printStackTrace();
-        }
+        }*/
     }
 
     public interface ActionRequest{
