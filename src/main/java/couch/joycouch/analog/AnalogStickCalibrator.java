@@ -24,10 +24,10 @@ public class AnalogStickCalibrator {
         float[] pos = new float[2];
         int[] buf = new int[]{ this.getHorizontal(data1, data2), this.getVertical(data2, data3) };
         for(int i = 0; i < 2; i++){
-            float diff = buf[i] - this.stick_cal[2 + i];
-            if(Math.abs(diff) < this.dead_zone) buf[i] = 0;
+            float diff = buf[i] - this.stick_cal[i];
+            if(Math.abs(diff) < this.dead_zone) pos[i] = 0;
             else if(diff > 0){
-                pos[i] = diff / buf[i];
+                pos[i] = diff / stick_cal[2 + i];
             }else{
                 pos[i] = diff / stick_cal[4 + i];
             }
@@ -57,14 +57,11 @@ public class AnalogStickCalibrator {
 
     private int getDeadZoneFrom(byte[] data){
         int b = (data[3] << 8) & 0xF00;
-        int b1 = b | (data[2]);
+        int b1 = b | (data[2]) & 0xFF;
         return b1;
     }
 
     private void calibrate(){
-        int b0 = stick_precal[5] << 4;
-        int b1 = stick_precal[4] >> 4;
-        int b2 = b0 | b1;
         stick_cal[0] = (stick_precal[1] << 8) & 0xF00 | stick_precal[0] & 0xFF;
         stick_cal[1] = ((stick_precal[2] << 4)) | (stick_precal[1] >> 4);
         stick_cal[2] = (stick_precal[4] << 8) & 0xF00 | stick_precal[3] & 0xFF;
