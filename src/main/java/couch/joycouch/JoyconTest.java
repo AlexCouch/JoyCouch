@@ -10,7 +10,7 @@ import couch.joycouch.joycon.Joycon;
 
 public class JoyconTest {
     public static void main(String[] args) throws InterruptedException {
-        JoyconManager.INSTANCE.setInputFrequency(10);
+        JoyconManager.INSTANCE.setInputFrequency(50);
         JoyconManager.INSTANCE.start();
         JoyconManager.INSTANCE.join();
         if(JoyconManager.INSTANCE.getLeft() != null){

@@ -69,8 +69,8 @@ public class Joycon extends Thread{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        this.actionRequestProcessor.requestAction(Joycon::setPlayerLED);
         this.actionRequestProcessor.requestAction(Joycon::setInputReportMode);
+        this.actionRequestProcessor.requestAction(Joycon::setPlayerLED);
         device.setInputReportListener(hidInputReportHandler);
         inputHandlerThread.start();
     }
@@ -87,11 +87,11 @@ public class Joycon extends Thread{
                 .setSubcommandID((byte)0x03)
                 .setSubcommandArg((byte)0x3F)
                 .sendTo(this);
-        JoyconOutputReportFactory.INSTANCE
+        /*JoyconOutputReportFactory.INSTANCE
                 .setOutputReportID((byte)0x01)
                 .setSubcommandID((byte)0x06)
-                .setSubcommandArg((byte)0x1)
-                .sendTo(this);
+                .setSubcommandArg((byte)0x0)
+                .sendTo(this);*/
     }
 
     /*
