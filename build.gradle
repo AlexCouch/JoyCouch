@@ -1,14 +1,37 @@
+buildscript{
+    repositories{
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven"}
+    }
+    dependencies{
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+
 plugins {
     id 'java'
 }
 
+apply plugin: 'net.minecraftforge.gradle.forge'
+
 group 'couch'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
+sourceCompatibility = targetCompatibility = 1.8
+compileJava{
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft{
+    version = "1.12.2-14.23.2.2654"
+    runDir = "run"
+    
+    mappings = "snapshot_20171003"
+}
 
 repositories {
     mavenCentral()
+    jcenter()
     
     flatDir{
         dirs 'libs'
@@ -23,10 +46,24 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
 }
 
+processResources{
+    from(sourceSets.main.resources.srcDirs){
+        include 'mcmod.info'
+        
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+    
+    from(sourceSets.main.resources.srcDirs){
+        exclude 'mcmod.info'
+    }
+}
+
 jar {
     from {
         (configurations.runtime).collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+    
+    exclude('couch/test')
 }
