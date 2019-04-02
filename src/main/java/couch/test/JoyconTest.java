@@ -1,5 +1,6 @@
-package couch.joycouch;
+package couch.test;
 
+import couch.joycouch.JoyconManager;
 import couch.joycouch.analog.AnalogStick;
 import couch.joycouch.analog.AnalogStickStatus;
 import couch.joycouch.buttons.ButtonStatus;

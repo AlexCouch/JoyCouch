@@ -43,9 +43,9 @@ public class JoyconOutputReportFactory {
                 String.format("0x%04x", this.report[0]),
                 String.format("0x%04x", this.report[10]),
                 Arrays.toString(Arrays.copyOfRange(this.report, 11, this.report.length - 1)));
-        int resp = joycon.getDevice().setOutputReport(this.report[0], this.report, this.report.length);
+        int resp = joycon.getDevice().setOutputReport(this.report[0], this.report, this.report.length - 2);
         JoyconManager.LOGGER.debug("Output report response: {}", resp);
         this.report = new byte[50];
-        joycon.getDevice().setOutputReport((byte)0x0, this.report, this.report.length);
+        joycon.getDevice().setOutputReport((byte)0x0, this.report, this.report.length - 2);
     }
 }

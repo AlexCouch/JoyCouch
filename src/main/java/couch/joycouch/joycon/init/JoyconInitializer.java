@@ -23,7 +23,6 @@ public class JoyconInitializer extends Thread implements InputReportListener {
     public synchronized void run(){
         initializeBatteryInfo();
         initializeCalibrator();
-//        this.joycon.requestAction(Joycon::notify);
     }
 
     private void getMemoryForCalibrator(){
