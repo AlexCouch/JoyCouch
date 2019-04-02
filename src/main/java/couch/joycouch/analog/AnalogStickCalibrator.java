@@ -63,11 +63,11 @@ public class AnalogStickCalibrator {
 
     private void calibrate(){
         stick_cal[0] = (stick_precal[1] << 8) & 0xF00 | stick_precal[0] & 0xFF;
-        stick_cal[1] = ((stick_precal[2] << 4)) | (stick_precal[1] >> 4);
+        stick_cal[1] = ((stick_precal[2] << 4)) | (stick_precal[1] >> 4) & 0xF;
         stick_cal[2] = (stick_precal[4] << 8) & 0xF00 | stick_precal[3] & 0xFF;
         stick_cal[3] = ((stick_precal[5] << 4)) | (stick_precal[4] >> 4) & 0xF;
         stick_cal[4] = (stick_precal[7] << 8) & 0xF00 | stick_precal[6] & 0xFF;
-        stick_cal[5] = ((stick_precal[8] << 4)) | (stick_precal[7] >> 4);
+        stick_cal[5] = ((stick_precal[8] << 4)) | (stick_precal[7] >> 4) & 0xF;
     }
 
     private void sortCalibratedData(){
