@@ -1,18 +1,6 @@
-buildscript{
-    repositories{
-        jcenter()
-        maven { url = "http://files.minecraftforge.net/maven"}
-    }
-    dependencies{
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
-    }
-}
-
 plugins {
     id 'java'
 }
-
-apply plugin: 'net.minecraftforge.gradle.forge'
 
 group 'couch'
 version '1.0-SNAPSHOT'
@@ -20,13 +8,6 @@ version '1.0-SNAPSHOT'
 sourceCompatibility = targetCompatibility = 1.8
 compileJava{
     sourceCompatibility = targetCompatibility = '1.8'
-}
-
-minecraft{
-    version = "1.12.2-14.23.2.2654"
-    runDir = "run"
-    
-    mappings = "snapshot_20171003"
 }
 
 repositories {
@@ -44,18 +25,6 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
-}
-
-processResources{
-    from(sourceSets.main.resources.srcDirs){
-        include 'mcmod.info'
-        
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-    
-    from(sourceSets.main.resources.srcDirs){
-        exclude 'mcmod.info'
-    }
 }
 
 jar {
