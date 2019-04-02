@@ -3,7 +3,7 @@ My own library (obviously in the works) that allows the implementation of the Ni
 
 I'll be updating this README with some more detailed docs in the future. For now, I am trying to get this to be in working condition.
 
-NOTE: This project is currently migrating to Kotlin/Native in a completely different workspace. Because of this, there will be a new repository (linked here when created) created for the development from here on out. I will leave this project here as a reference and in case anybody wishes to play around with it. It's not cleaned, there is no exported jar, there is no proper documentation either. I will not be adding any of the aforementioned. There is, however, a license (as reminded to me by guusverbeek) so that nobody can just take this code and claim it as their own.
+NOTE: This project is currently migrating to Kotlin/Native in a completely different workspace. Because of this, there will be a new repository (linked here when created) created for the development from here on out.
 
 I have decided to make this a stable working version with documentation as a prototype before moving to a native version. I will of course work on the native porting but I think it'd be good to have something working before I actually port it.
 
