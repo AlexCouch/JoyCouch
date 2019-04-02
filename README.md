@@ -3,11 +3,13 @@ My own library (obviously in the works) that allows the implementation of the Ni
 
 I'll be updating this README with some more detailed docs in the future. For now, I am trying to get this to be in working condition.
 
-### NOTE: This project is currently migrating to Kotlin/Native in a completely different workspace. Because of this, there will be a new repository (linked here when created) created for the development from here on out. I will leave this project here as a reference and in case anybody wishes to play around with it. It's not cleaned, there is no exported jar, there is no proper documentation either. I will not be adding any of the aforementioned. There is, however, a license (as reminded to me by guusverbeek) so that nobody can just take this code and claim it as their own.
+NOTE: This project is currently migrating to Kotlin/Native in a completely different workspace. Because of this, there will be a new repository (linked here when created) created for the development from here on out. I will leave this project here as a reference and in case anybody wishes to play around with it. It's not cleaned, there is no exported jar, there is no proper documentation either. I will not be adding any of the aforementioned. There is, however, a license (as reminded to me by guusverbeek) so that nobody can just take this code and claim it as their own.
 
-### NOTE: There is currently not working version at the moment. It currently going under a lot of refactoring, reoganization, and optimizations. There are lots of testing that needs to be done. Any contribution must be discussed with me on discord @Alex Couch#5275. Please specify your first message with me to include this project so I know why you're messaging me.
-### NOTE: All documentation and JavaDoc comments are NOT final. Sometimes things change and I don't update the docs. They are there mostly for me. Please take some of it with a grain of salt.
-### NOTE: The header will have either "broken" or "working". Obviously meaning that you can either test it and it'll work or it won't.
+I have decided to make this a stable working version with documentation as a prototype before moving to a native version. I will of course work on the native porting but I think it'd be good to have something working before I actually port it.
+
+I am also thinking about a new name for this library. Any suggestions are welcome.
+
+Right now, this, to my knowledge, only works on mac. I am sure it might be functional to some degree on linux since mac and linux are both unix based. It is currently broken on windows and I am working to make it more portable. See issue #3
 
 JoyCouch is a WIP easy-to-use, efficient, flexible, thread-safe Nintendo Joy-Con API. It is very early in development and currently includes:
 * Rumbling
