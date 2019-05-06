@@ -1,6 +1,8 @@
 # JoyCouch (broken)
 My own library (obviously in the works) that allows the implementation of the Nintendo Joy-Con. This requires bluetooth.
 
+### This project is now being written in Rust under the name [joycon-rs](https://www.github.com/AlexCouch/joycon-rs).
+
 I'll be updating this README with some more detailed docs in the future. For now, I am trying to get this to be in working condition.
 
 NOTE: This project is currently migrating to Kotlin/Native in a completely different workspace. Because of this, there will be a new repository (linked here when created) created for the development from here on out.
